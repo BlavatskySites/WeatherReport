@@ -146,11 +146,16 @@ async function load(lat,lon){
 let rt;
 function go(a,b){try{localStorage.setItem('rw',JSON.stringify([a,b]))}catch(e){}clearInterval(rt);load(a,b);rt=setInterval(()=>load(a,b),600000)}
 function saved(){try{const c=JSON.parse(localStorage.getItem('rw'));if(c){go(c[0],c[1]);return true}}catch(e){}return false}
-function start(){
- const ask=()=>{$('loc').textContent='Search a location';$('cur').textContent='Enter a US city or ZIP code below to see your forecast.'};
- if(!navigator.geolocation){saved()||ask();return}
- navigator.geolocation.getCurrentPosition(p=>go(p.coords.latitude,p.coords.longitude),()=>{saved()||ask()},{timeout:15000});
-}
+function ask(msg){$('loc').textContent='Location needed';
+ $('cur').innerHTML=msg+'<br><br><button id="lb" style="font:inherit;color:#0a1560;background:#ffd23a;border:0;padding:10px 16px;cursor:pointer;box-shadow:2px 2px 0 #000">Use my location</button><br><br>Or search a US city or ZIP in the bar below.';
+ $('lb').onclick=locate}
+function locate(){
+ if(!window.isSecureContext||!navigator.geolocation){saved()||ask('Location needs a secure https page and a browser that supports it. Open the site from its https address.');return}
+ $('cur').textContent='Finding your location… allow the browser prompt.';
+ navigator.geolocation.getCurrentPosition(p=>go(p.coords.latitude,p.coords.longitude),e=>{
+  if(saved())return;
+  ask(e.code===1?'Location is blocked for this site. Click the lock icon in the address bar, set Location to Allow, then press the button. If the site is inside a preview frame, open its own web address instead.':'Could not get your location. Check that location services are on, then try again.')},{timeout:20000,maximumAge:600000})}
+function start(){locate()}
 $('sf').onsubmit=async e=>{e.preventDefault();const q=$('q').value.split(',')[0].trim();if(!q)return;$('cur').textContent='Searching…';
  try{const r=await(await fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&format=json&name='+encodeURIComponent(q))).json();
   if(!r.results)throw 0;go(r.results[0].latitude,r.results[0].longitude)}
@@ -171,9 +176,9 @@ const RH=[[[0,3],[3,3],[6,2],[8,6]],[[2,2],[4,4],[8,3],[11,2],[13,3]],[[0,2],[2,
 /* Remake the mixes on every page load: new key, chord start, tempo and groove details */
 {const mut=p=>p===Z?p:[...p].map((c,i)=>i&&Math.random()<.1?(c==='0'?'1':'0'):c).join('');
  SONGS.forEach(y=>{y.T=R(12);y.bpm+=R(11)-5;const r=R(4);y.ch=[...y.ch.slice(r),...y.ch.slice(0,r)];y.k=mut(y.k);if(!y.arp)y.comp=mut(y.comp)})}
-let ac,comp,master,conv,echIn,dl,nb,timer,playing=false,muted=false,mix=true,cur=R(5),step=0,nextT=0,sty,chs=[],cp=76,ph={},lastR=null;
+let ac,comp,master,conv,echIn,dl,nb,timer,playing=false,muted=false,mix=true,song=R(5),step=0,nextT=0,sty,chs=[],cp=76,ph={},lastR=null;
 
-function setSong(i){cur=i;sty=SONGS[i];let pa=64;
+function setSong(i){song=i;sty=SONGS[i];let pa=64;
  chs=sty.ch.map(([d,q])=>{const pc=(sty.T+d)%12;let best,bd=1e9;
   for(let f=50;f<=60;f++){const a=[];let p=f-2;for(const o of Q[q].v){let m=p+2;while(m%12!==(pc+o)%12)m++;a.push(m);p=m}
    const sc=Math.abs(a.reduce((x,y)=>x+y)/4-pa)+(a[3]>80?20:0);if(sc<bd){bd=sc;best=a}}
@@ -218,7 +223,7 @@ function pick(c,strong){const set=Q[c.q][strong?'c':'m'],mid=(sty.lo+sty.hi)/2,a
  for(let m=sty.lo;m<=sty.hi;m++)if(set.includes(((m-c.pc)%12+12)%12))a.push([Math.abs(m-cp)+Math.random()*3.5+Math.abs(m-mid)*.12+(m===cp?4:0),m]);
  a.sort((x,y)=>x[0]-y[0]);return cp=a[0][1]}
 function sched(){while(nextT<ac.currentTime+.8){
- if(mix&&step>0&&step%256===0)setSong((cur+1)%5);
+ if(mix&&step>0&&step%256===0)setSong((song+1)%5);
  const ST=60/sty.bpm/4,s=step%16,bar=Math.floor(step/16),c=chs[bar%4],t=nextT+(s%2?ST*sty.sw:0),hu=()=>rr(0,.012);
  if(s===0){if(sty.pad)c.voi.forEach(m=>pad(m,t,ST*16));ph={};if(bar%2===0||!lastR)lastR=RH[R(RH.length)];lastR.forEach(([a,l])=>ph[a]=l)}
  const bc=sty.bass[s];if(bc!=='.')bass(c.b+(bc==='o'?12:bc==='f'?7:0),t,rr(.75,1),ST*2.6);
@@ -239,15 +244,15 @@ function init(){ac=new (window.AudioContext||window.webkitAudioContext)();
  for(let c=0;c<2;c++){const d=ib.getChannelData(c);let lp=0;for(let i=0;i<L;i++){lp+=((Math.random()*2-1)*Math.pow(1-i/L,2.8)-lp)*(.25+.5*(1-i/L));d[i]=lp}}
  conv.buffer=ib;const rg=ac.createGain();rg.gain.value=.9;conv.connect(rg);rg.connect(comp);
  echIn=ac.createGain();dl=ac.createDelay(2);const fb=ac.createGain(),lpE=ac.createBiquadFilter();fb.gain.value=.36;lpE.frequency.value=2600;
- echIn.connect(dl);dl.connect(lpE);lpE.connect(fb);fb.connect(dl);lpE.connect(comp);lpE.connect(conv);setSong(cur);setVol()}
+ echIn.connect(dl);dl.connect(lpE);lpE.connect(fb);fb.connect(dl);lpE.connect(comp);lpE.connect(conv);setSong(song);setVol()}
 function setVol(){if(master)master.gain.setTargetAtTime(muted?0:$('vol').value/100*.9,ac.currentTime,.05)}
-setSong(cur);
+setSong(song);
 $('play').onclick=async()=>{
  if(!ac)init();
  if(!playing){await ac.resume();nextT=ac.currentTime+.15;timer=setInterval(sched,200);playing=true;$('play').textContent='❚❚ Pause music'}
  else{clearInterval(timer);ac.suspend();playing=false;$('play').textContent='▶ Play music'}
  $('play').setAttribute('aria-pressed',playing)};
-$('trk').onchange=()=>{const v=$('trk').value;mix=v==='m';if(!mix)cur=+v;step=0;lastR=null;setSong(cur)};
+$('trk').onchange=()=>{const v=$('trk').value;mix=v==='m';if(!mix)song=+v;step=0;lastR=null;setSong(song)};
 $('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'Unmute':'Mute';$('mute').setAttribute('aria-pressed',muted);setVol()};
 $('vol').oninput=setVol;
 </script>
