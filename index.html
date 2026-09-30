@@ -231,7 +231,14 @@ async function scrape(){const u='https://drive.google.com/embeddedfolderview?id=
   const au=all.filter(x=>/\.(mp3|m4a|wav|ogg|flac)$/i.test(x[1])),use=au.length?au:all;
   if(use.length)return use.map(x=>({n:x[1].replace(/\.[^.]+$/,''),u:'https://drive.google.com/uc?export=download&id='+x[0]}))}catch(e){}}return[]}
 async function loadSongs(){
- if(LIST_URL){try{const r=await(await fetch(LIST_URL)).json();songs=r.filter(f=>/\.(mp3|m4a|wav|ogg|flac)$/i.test(f.name)).map(f=>({n:f.name.replace(/\.[^.]+$/,''),u:'https://drive.google.com/uc?export=download&id='+f.id}))}catch(e){}}
+ if(LIST_URL){try{const r=await(await fetch(LIST_URL)).json();
+                  // TO THIS:
+songs=r.filter(f=>/\.(mp3|m4a|wav|ogg|flac)$/i.test(f.name)).map(f=>({n:f.name.replace(/\.[^.]+$/,''),u:'https://google.com}))
+
+              }catch(e){}}
+
+
+   
  else if(DRIVE_KEY){try{const r=await(await fetch('https://www.googleapis.com/drive/v3/files?pageSize=1000&fields=files(id,name,mimeType)&q='+encodeURIComponent("'"+DRIVE_FOLDER+"' in parents and trashed=false")+'&key='+DRIVE_KEY)).json();
   songs=(r.files||[]).filter(f=>/^audio\//.test(f.mimeType)||/\.mp3$/i.test(f.name)).map(f=>({n:f.name.replace(/\.[^.]+$/,''),u:'https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media&key='+DRIVE_KEY}))}catch(e){}}
  else{try{const c=JSON.parse(localStorage.getItem('rwsongs')||'null');if(c&&Date.now()-c.t<216e5)songs=c.s}catch(e){}
