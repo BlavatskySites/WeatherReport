@@ -233,7 +233,8 @@ async function scrape(){const u='https://drive.google.com/embeddedfolderview?id=
 async function loadSongs(){
  if(LIST_URL){try{const r=await(await fetch(LIST_URL)).json();
                   // TO THIS:
-songs=r.filter(f=>/\.(mp3|m4a|wav|ogg|flac)$/i.test(f.name)).map(f=>({n:f.name.replace(/\.[^.]+$/,''),u:'https://google.com'}))
+// CHANGE THIS:
+songs=r.filter(f=>/\.(mp3|m4a|wav|ogg|flac)$/i.test(f.name)).map(f=>({n:f.name.replace(/\.[^.]+$/,''),u:'https://drive.google.com/uc?export=download&id='+f.id}))
 
               }catch(e){}}
 
