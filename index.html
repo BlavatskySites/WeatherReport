@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 <title>Retro Weather</title>
 <style>
 :root{--navy:#0a1560;--royal:#1f3fc4;--sky:#5a8cff;--gold:#ffd23a;--white:#f4f6ff;--plum:#3b1a78}
@@ -12,26 +13,26 @@ body{background:#050a30;color:var(--white);font-family:"Star4000","Trebuchet MS"
 .tv{width:min(100vw,960px);min-height:min(100vh,620px);display:flex;flex-direction:column;background:linear-gradient(180deg,var(--royal) 0%,var(--navy) 62%,var(--plum) 100%);border:3px solid #9fb4ff;position:relative;overflow:hidden}
 .tv:after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px)}
 header{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:linear-gradient(90deg,var(--navy),var(--royal));border-bottom:3px solid var(--gold)}
-.ttl{font-size:clamp(16px,3.4vw,26px);text-shadow:3px 3px 0 #000;letter-spacing:.02em}
+.ttl{font-size:clamp(20.8px,4.4vw,33.8px);text-shadow:3px 3px 0 #000;letter-spacing:.02em}
 .ttl small{display:block;color:var(--gold);font-size:.6em}
-#clock{font-size:clamp(16px,3.2vw,24px);text-shadow:3px 3px 0 #000;text-align:right;color:var(--gold)}
+#clock{font-size:clamp(20.8px,4.2vw,31.2px);text-shadow:3px 3px 0 #000;text-align:right;color:var(--gold)}
 main{flex:1;position:relative;padding:20px}
 .screen{display:none;height:100%}
 .screen.on{display:block;animation:fade .6s}
 @keyframes fade{from{opacity:0}to{opacity:1}}
-h2{font-size:clamp(18px,3.6vw,28px);color:var(--gold);text-shadow:3px 3px 0 #000;margin-bottom:14px}
-.row{display:flex;justify-content:space-between;gap:12px;font-size:clamp(16px,3.4vw,26px);text-shadow:2px 2px 0 #000;padding:5px 0;border-bottom:1px dotted rgba(255,255,255,.35)}
+h2{font-size:clamp(23.4px,4.7vw,36.4px);color:var(--gold);text-shadow:3px 3px 0 #000;margin-bottom:14px}
+.row{display:flex;justify-content:space-between;gap:12px;font-size:clamp(20.8px,4.4vw,33.8px);text-shadow:2px 2px 0 #000;padding:5px 0;border-bottom:1px dotted rgba(255,255,255,.35)}
 .big{display:flex;align-items:center;gap:20px;margin-bottom:12px}
-.big .t{font-size:clamp(52px,14vw,110px);line-height:1;text-shadow:4px 4px 0 #000}
-.big .i{font-size:clamp(48px,11vw,84px)}
-.big .c{font-size:clamp(18px,3.8vw,30px);text-shadow:3px 3px 0 #000}
+.big .t{font-size:clamp(67.6px,18.2vw,143px);line-height:1;text-shadow:4px 4px 0 #000}
+.big .i{font-size:clamp(62.4px,14.3vw,109.2px)}
+.big .c{font-size:clamp(23.4px,4.9vw,39px);text-shadow:3px 3px 0 #000}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.card{background:rgba(5,10,60,.6);border:2px solid var(--sky);padding:10px;text-align:center;text-shadow:2px 2px 0 #000;font-size:clamp(13px,2.6vw,20px)}
+.card{background:rgba(5,10,60,.6);border:2px solid var(--sky);padding:10px;text-align:center;text-shadow:2px 2px 0 #000;font-size:clamp(16.9px,3.4vw,26px)}
 .card b{display:block;color:var(--gold)}
-.card .i{font-size:clamp(30px,7vw,52px);margin:4px 0}
-.card .t{font-size:clamp(22px,5vw,36px)}
-.msg{font-size:clamp(16px,3vw,22px);text-shadow:2px 2px 0 #000;line-height:1.5}
-.ticker{background:#000;border-top:3px solid var(--gold);overflow:hidden;white-space:nowrap;padding:8px 0;color:var(--white);font-size:clamp(14px,2.6vw,20px)}
+.card .i{font-size:clamp(39px,9.1vw,67.6px);margin:4px 0}
+.card .t{font-size:clamp(28.6px,6.5vw,46.8px)}
+.msg{font-size:clamp(20.8px,3.9vw,28.6px);text-shadow:2px 2px 0 #000;line-height:1.5}
+.ticker{background:#000;border-top:3px solid var(--gold);overflow:hidden;white-space:nowrap;padding:8px 0;color:var(--white);font-size:clamp(18.2px,3.4vw,26px)}
 .ticker span{display:inline-block;padding-left:100%;animation:crawl 45s linear infinite}
 @keyframes crawl{to{transform:translateX(-100%)}}
 .bar{display:flex;align-items:center;gap:12px;padding:10px 20px;background:var(--navy);border-top:2px solid var(--sky);font-size:14px;z-index:2;position:relative}
@@ -45,9 +46,33 @@ h2{font-size:clamp(18px,3.6vw,28px);color:var(--gold);text-shadow:3px 3px 0 #000
 #q,#trk{background:#000;color:#fff;border:2px solid var(--sky);padding:7px;font:inherit;max-width:190px;min-width:100px}
 #sf{display:flex;gap:6px}
 .ticker.alert{background:#a00000}
-.hr{display:grid;grid-template-columns:1fr .7fr .8fr .8fr 1.6fr;align-items:center;font-size:clamp(13px,2.7vw,21px);text-shadow:2px 2px 0 #000;padding:1px 0;border-bottom:1px dotted rgba(255,255,255,.3)}
-.hr.h{color:var(--gold)}.hr .i{font-size:clamp(24px,5vw,34px)}
-@media(prefers-reduced-motion:reduce){.ticker span{animation:none;padding-left:8px}.screen.on{animation:none}}
+.hr{display:grid;grid-template-columns:1fr .7fr .8fr .8fr 1.6fr;align-items:center;font-size:clamp(16.9px,3.5vw,27.3px);text-shadow:2px 2px 0 #000;padding:1px 0;border-bottom:1px dotted rgba(255,255,255,.3)}
+.hr.h{color:var(--gold)}.hr .i{font-size:clamp(31.2px,6.5vw,44.2px)}
+body{text-shadow:-1px 0 rgba(255,40,80,.5),1px 0 rgba(0,210,255,.5)}
+.tv{border-radius:26px;border:6px solid #1a1f3a;box-shadow:inset 0 0 90px rgba(0,0,0,.75),0 0 30px rgba(90,140,255,.35);filter:contrast(1.12) saturate(1.2) blur(.3px);animation:flick 4s infinite}
+.tv:after{background:repeating-linear-gradient(0deg,rgba(0,0,0,.32) 0 2px,transparent 2px 4px),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6));z-index:5}
+@keyframes flick{0%,100%{opacity:1}50%{opacity:.965}52%{opacity:1}}
+main{overflow:auto}
+.map{width:100%;max-height:56vh;object-fit:contain;border:4px solid var(--sky);filter:contrast(1.3) saturate(1.35) sepia(.15);image-rendering:pixelated}
+.hr.c{grid-template-columns:1.6fr .6fr .7fr 1.4fr}
+@media(prefers-reduced-motion:reduce){.tv{animation:none}.ticker span{animation:none;padding-left:8px}.screen.on{animation:none}}
+html,body{height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch}
+#stage{flex:1;min-height:0;position:relative;overflow:hidden;background:#000}
+.tv{position:absolute;left:0;top:0;width:640px;min-width:640px;height:480px;min-height:480px;max-width:none;transform-origin:0 0}
+header{padding:8px 14px}.ttl{font-size:24px}#clock{font-size:20px;line-height:1.1}
+main{padding:8px 14px;overflow:hidden}
+h2{font-size:28px;margin-bottom:8px}.row{font-size:24px;padding:3px 0}
+.big{margin-bottom:6px}.big .t{font-size:88px}.big .i{font-size:72px}.big .c{font-size:26px}
+.card{font-size:15px;padding:6px}.card .i{font-size:40px}.card .t{font-size:26px}
+.msg{font-size:20px}.ticker{font-size:18px;padding:5px 0}.hr{font-size:18px}.hr .i{font-size:26px}
+.map{max-height:330px}
+.bar{background:#0a1560;border-top:2px solid var(--sky);font-size:13px;padding:8px 10px;gap:8px;flex-wrap:wrap}
+#nx{display:flex;align-items:center;gap:8px;font-size:15px;background:#000;color:var(--gold);border:3px solid var(--gold);padding:4px 12px;box-shadow:0 0 0 2px #000,0 0 14px rgba(255,210,58,.6)}
+#nx svg{width:40px;height:32px;fill:var(--gold)}
+.screen.alert h2{color:#fff;background:#c00000;padding:4px 8px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{background:#600}}
+.screen.alert .msg{font-size:16px}
 </style>
 </head>
 <body>
@@ -57,7 +82,7 @@ h2{font-size:clamp(18px,3.6vw,28px);color:var(--gold);text-shadow:3px 3px 0 #000
 <linearGradient id="gCl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#c6d3f5"/><stop offset="1" stop-color="#8296cf"/></linearGradient>
 <linearGradient id="gDk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4bad0"/><stop offset="1" stop-color="#525a80"/></linearGradient>
 </defs></svg>
-<div class="tv">
+<div id="stage"><div class="tv">
 <header>
   <div class="ttl">Retro Weather<small id="loc">Locating…</small></div>
   <div id="clock"></div>
@@ -70,24 +95,48 @@ h2{font-size:clamp(18px,3.6vw,28px);color:var(--gold);text-shadow:3px 3px 0 #000
   <section class="screen" id="s4"><h2>Hour by Hour (3/3)</h2><div id="hrs3"></div></section>
 </main>
 <div class="ticker"><span id="tick">Welcome. Allow location access to see your local forecast.</span></div>
-<div class="bar">
+</div></div>
+<div class="bar"><button id="nx" aria-label="Next screen"><svg viewBox="0 0 10 8" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="3" width="6" height="2"/><rect x="6" y="0" width="1" height="8"/><rect x="7" y="1" width="1" height="6"/><rect x="8" y="2" width="1" height="4"/><rect x="9" y="3" width="1" height="2"/></svg>NEXT</button>
   <button id="play" aria-pressed="false">▶ Play music</button>
   <button id="mute" aria-pressed="false">Mute</button>
   <label>Volume <input id="vol" type="range" min="0" max="100" value="60"></label>
   <form id="sf"><input id="q" type="text" placeholder="City or ZIP" aria-label="City or ZIP"><button>Go</button></form>
-  <select id="trk" aria-label="Music style"><option value="m">Mix of all five</option><option value="0">Bright groove (Rippingtons style)</option><option value="1">Open skies (Pat Metheny Group style)</option><option value="2">Rhodes funk (Jeff Lorber style)</option><option value="3">Soulful piano (Joe Sample style)</option><option value="4">Cinematic (Dave Grusin style)</option></select>
+  <button id="rnd">🎲 Random track</button><span id="np" style="font-size:15px"></span>
   <div class="n">Data: National Weather Service (NOAA)<br>Music: original, jazz-fusion inspired<br><span id="upd"></span></div>
 </div>
-</div>
-
 <script>
 /* ---------- Clock ---------- */
 const $=id=>document.getElementById(id);
 setInterval(()=>{const d=new Date();$('clock').innerHTML=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+'<br>'+d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})},1000);
 
 /* ---------- Screen rotation (like "Local on the 8s") ---------- */
-let cur=0;const SCREENS=5;
-setInterval(()=>{$('s'+cur).classList.remove('on');cur=(cur+1)%SCREENS;$('s'+cur).classList.add('on')},12000);
+let cur=0;const WORLD=[['Tokyo',35.68,139.69],['Delhi',28.61,77.21],['Shanghai',31.23,121.47],['São Paulo',-23.55,-46.63],['Mexico City',19.43,-99.13],['Cairo',30.04,31.24],['Mumbai',19.08,72.88],['Beijing',39.9,116.4],['Dhaka',23.81,90.41],['Osaka',34.69,135.5]];
+const US=[['Asheville',35.6,-82.55],['Charlotte',35.23,-80.84],['Knoxville',35.96,-83.92],['Atlanta',33.75,-84.39],['Raleigh',35.78,-78.64],['Greenville SC',34.85,-82.4],['Nashville',36.16,-86.78],['Columbia SC',34,-81.03],['Richmond',37.54,-77.44],['Washington DC',38.9,-77.04],['Birmingham',33.52,-86.8],['Louisville',38.25,-85.76],['Charleston SC',32.78,-79.93],['Jacksonville',30.33,-81.66],['Memphis',35.15,-90.05],['Pittsburgh',40.44,-79.99],['Philadelphia',39.95,-75.17],['New York',40.71,-74.01],['Chicago',41.88,-87.63],['Miami',25.76,-80.19],['Houston',29.76,-95.37],['Dallas',32.78,-96.8],['Denver',39.74,-104.99],['Los Angeles',34.05,-118.24],['Seattle',47.61,-122.33],['Phoenix',33.45,-112.07],['Boston',42.36,-71.06]];
+const MAPS=[['Satellite','https://cdn.star.nesdis.noaa.gov/GOES19/ABI/CONUS/GEOCOLOR/1250x750.jpg'],['Moisture (Water Vapor)','https://cdn.star.nesdis.noaa.gov/GOES19/ABI/CONUS/09/1250x750.jpg'],['National Radar (Rain)','https://radar.weather.gov/ridge/standard/CONUS_0.gif']];
+{const e=document.createElement('section');e.className='screen alert skip';e.id='sAL';e.innerHTML='<h2>⚠ EMERGENCY ALERT</h2><div id="al" class="msg"></div>';document.querySelector('main').prepend(e)}
+const add=(t,b)=>{const e=document.createElement('section');e.className='screen';e.id='s'+document.querySelectorAll('.screen').length;e.innerHTML='<h2>'+t+'</h2>'+b;document.querySelector('main').appendChild(e)};
+MAPS.forEach(([t,u])=>add(t,'<img class="map" data-src="'+u+'" alt="'+t+'">'));
+add('Nearby Cities','<div id="nb"></div>');add('World Cities (1/2)','<div id="wc1"></div>');add('World Cities (2/2)','<div id="wc2"></div>');
+const WM=c=>c===0?'Clear':c<3?'Partly cloudy':c===3?'Overcast':c<50?'Fog':c<60?'Drizzle':c<70?'Rain':c<80?'Snow':c<90?'Showers':'Thunderstorm';
+async function cities(l,id){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code&temperature_unit=fahrenheit&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
+ $(id).innerHTML=l.map((c,i)=>{const w=WM(a[i].current.weather_code);return '<div class="hr c"><span>'+c[0]+'</span><span class="i">'+icon(w)+'</span><span>'+Math.round(a[i].current.temperature_2m)+'°</span><span>'+w+'</span></div>'}).join('')}catch(e){$(id).textContent='City data unavailable.'}}
+async function nearby(l){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=1&timezone=auto&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
+ $('nb').innerHTML='<div class="grid">'+l.map((c,i)=>{const u=a[i].current,d=a[i].daily,w=WM(u.weather_code);return '<div class="card"><b>'+c[0]+'</b><div class="i">'+icon(w)+'</div><div class="t">'+Math.round(u.temperature_2m)+'°</div>'+w+'<br>H '+Math.round(d.temperature_2m_max[0])+'° L '+Math.round(d.temperature_2m_min[0])+'°<br>Wind '+Math.round(u.wind_speed_10m)+' mph<br>Humidity '+u.relative_humidity_2m+'%<br>Rain '+(d.precipitation_probability_max[0]??0)+'%</div>'}).join('')+'</div>'}catch(e){$('nb').textContent='City data unavailable.'}}
+const nearest=(a,b)=>US.map(c=>[c,(c[1]-a)**2+((c[2]-b)*Math.cos(a*Math.PI/180))**2]).sort((x,y)=>x[1]-y[1]).slice(0,3).map(x=>x[0]);
+function snaps(){document.querySelectorAll('img.map').forEach(i=>{i.onerror=()=>{i.style.opacity=.15;i.alt='Image unavailable right now'};i.src=i.dataset.src+'?t='+Math.floor(Date.now()/9e5)})}
+snaps();setInterval(snaps,15*60*1000);
+setTimeout(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},0);setInterval(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},30*60*1000);
+const scr=()=>[...document.querySelectorAll('.screen')];
+function show(i){const a=scr();a.forEach(e=>e.classList.remove('on'));cur=(i+a.length)%a.length;a[cur].classList.add('on')}
+function next(){const a=scr();let i=cur;do{i=(i+1)%a.length}while(a[i].classList.contains('skip'));show(i)}
+let tmr;const arm=()=>{clearInterval(tmr);tmr=setInterval(next,10000)};cur=scr().indexOf($('s0'));arm();
+$('nx').onclick=()=>{next();arm()};
+function emergency(al){const e=$('sAL');e.classList.toggle('skip',!al.length);
+ $('al').innerHTML=al.slice(0,3).map(a=>{const p=a.properties;return '<p style="margin:0 0 8px"><b>'+p.event.toUpperCase()+'</b> - '+(p.areaDesc||'').slice(0,70)+'<br>'+(p.headline||'').slice(0,120)+'<br>'+(p.description||'').replace(/\s+/g,' ').slice(0,200)+'…</p>'}).join('');
+ if(al.length&&!emergency.shown){emergency.shown=1;show(scr().indexOf(e));arm()}if(!al.length)emergency.shown=0}
+function fit(){const st=$('stage'),w=st.clientWidth,h=st.clientHeight;let kx=w/640,ky=h/480;const r=kx/ky;if(r>1.25)kx=ky*1.25;else if(r<.8)ky=kx/.8;
+ document.querySelector('.tv').style.transform='translate('+(w-640*kx)/2+'px,'+(h-480*ky)/2+'px) scale('+kx+','+ky+')'}
+addEventListener('resize',fit);fit();
 
 /* ---------- NOAA (api.weather.gov) ---------- */
 const CLP='M20 48C11 48 8 38 15 34C14 26 23 21 29 26C33 17 47 19 48 29C57 29 59 44 50 48Z';
@@ -109,7 +158,7 @@ const dir=d=>d==null?'':['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW
 const jget=async u=>{const r=await fetch(u,{headers:{Accept:'application/geo+json'}});if(!r.ok)throw new Error(r.status);return r.json()};
 const v=x=>x&&x.value!=null?x.value:null;
 
-async function load(lat,lon){
+async function load(lat,lon){nearby(nearest(lat,lon));
  try{
   const pt=(await jget(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`)).properties;
   const rl=pt.relativeLocation.properties;$('loc').textContent=`${rl.city}, ${rl.state}`;
@@ -118,13 +167,13 @@ async function load(lat,lon){
   // Extended forecast
   $('ext').innerHTML=P.slice(0,6).map(p=>`<div class="card"><b>${p.name}</b><div class="i">${icon(p.shortForecast,p.isDaytime)}</div><div class="t">${p.temperature}°</div>${p.shortForecast}</div>`).join('');
   // Hourly
-  const hp=hr.properties.periods.slice(0,24),
+  const hp=hr.properties.periods.slice(0,18),
    H=a=>'<div class="hr h"><span>Time</span><span></span><span>Temp</span><span>Rain</span><span>Wind</span></div>'+a.map(p=>`<div class="hr"><span>${new Date(p.startTime).toLocaleTimeString([],{hour:'numeric'})}</span><span class="i">${icon(p.shortForecast,p.isDaytime)}</span><span>${p.temperature}°</span><span>${v(p.probabilityOfPrecipitation)??0}%</span><span>${p.windDirection} ${p.windSpeed}</span></div>`).join('');
-  ['hrs','hrs2','hrs3'].forEach((id,i)=>$(id).innerHTML=H(hp.slice(i*8,i*8+8)));
+  ['hrs','hrs2','hrs3'].forEach((id,i)=>$(id).innerHTML=H(hp.slice(i*6,i*6+6)));
   $('tick').textContent=P[0].name+': '+P[0].detailedForecast+'   •   '+P[1].name+': '+P[1].detailedForecast;
   try{const al=(await jget(`https://api.weather.gov/alerts/active?point=${lat.toFixed(4)},${lon.toFixed(4)}`)).features;
    document.querySelector('.ticker').classList.toggle('alert',al.length>0);
-   if(al.length)$('tick').textContent=al.map(a=>'⚠ '+a.properties.event.toUpperCase()+': '+(a.properties.headline||'')).join('   •   ')+'   •   '+$('tick').textContent}catch(e){}
+   emergency(al);if(al.length)$('tick').textContent=al.map(a=>'⚠ '+a.properties.event.toUpperCase()+': '+(a.properties.headline||'')).join('   •   ')+'   •   '+$('tick').textContent}catch(e){}
   // Current observation (first station that reports a temperature)
   let o=null;
   for(const s of st.features.slice(0,4)){try{const r=(await jget(s.id+'/observations/latest')).properties;if(v(r.temperature)!=null){o=r;o.sid=s.properties.stationIdentifier;break}}catch(e){}}
@@ -173,86 +222,62 @@ const SONGS=[
  {bpm:88,sw:.24,ch:[[0,'maj9'],[9,'m9'],[2,'m9'],[7,'dom13']],bass:'r.....f.r.o...f.',comp:'1000100100101000',ce:'piano',le:'piano',pad:0,k:'1000000010100000',s:'0000100000001000',h:'1010101010101010',r:Z,lo:67,hi:86},
  {bpm:76,sw:.08,ch:[[0,'maj9'],[5,'lyd'],[4,'m9'],[7,'dom13']],bass:'r.......f...r...',comp:'1010101010101010',arp:1,ce:'piano',le:'piano',pad:1,k:'1000000000100000',s:'0000000000001000',h:Z,r:'1010101010101010',lo:64,hi:86}];
 const RH=[[[0,3],[3,3],[6,2],[8,6]],[[2,2],[4,4],[8,3],[11,2],[13,3]],[[0,2],[2,2],[4,2],[6,6],[12,4]],[[3,3],[6,3],[10,2],[12,4]],[[0,6],[8,2],[10,2],[12,4]],[[1,2],[3,2],[6,4],[10,6]],[]],ARP=[0,1,2,3,2,3,1,2];
-/* Remake the mixes on every page load: new key, chord start, tempo and groove details */
-{const mut=p=>p===Z?p:[...p].map((c,i)=>i&&Math.random()<.1?(c==='0'?'1':'0'):c).join('');
- SONGS.forEach(y=>{y.T=R(12);y.bpm+=R(11)-5;const r=R(4);y.ch=[...y.ch.slice(r),...y.ch.slice(0,r)];y.k=mut(y.k);if(!y.arp)y.comp=mut(y.comp)})}
-let ac,comp,master,conv,echIn,dl,nb,timer,playing=false,muted=false,mix=true,song=R(5),step=0,nextT=0,sty,chs=[],cp=76,ph={},lastR=null;
-
-function setSong(i){song=i;sty=SONGS[i];let pa=64;
- chs=sty.ch.map(([d,q])=>{const pc=(sty.T+d)%12;let best,bd=1e9;
+/* ---------- Pre-arranged tracks: each name has a fixed arrangement, played with Tone.js sampled + synth instruments ---------- */
+const TRACKS=[['Sunny Day Jamming',0],['Windy Sax',0],['Barometer Boogie',2],['Cloud Nine Funk',2],['Isobar Groove',1],['Humidity Rag',3],['Jet Stream Lounge',1],['Doppler Shuffle',3],['Thunder Nap Ballad',4],['Fog Horn Fantasy',4],['Pressure Front Strut',0],['Dew Point Blues',3]];
+const hash=s=>[...s].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7);
+const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+function compose(si,seed){const y=SONGS[si],g=rng(seed),R=n=>Math.floor(g()*n),rr=(a,b)=>a+g()*(b-a),T=R(12),rot=R(4),ST=60/y.bpm/4,ev=[];
+ const mut=p=>p===Z?p:[...p].map((c,i)=>i&&g()<.1?(c==='0'?'1':'0'):c).join(''),kk=mut(y.k),cm=y.arp?y.comp:mut(y.comp);let pa=64;
+ const chs=[...y.ch.slice(rot),...y.ch.slice(0,rot)].map(([d,q])=>{const pc=(T+d)%12;let best,bd=1e9;
   for(let f=50;f<=60;f++){const a=[];let p=f-2;for(const o of Q[q].v){let m=p+2;while(m%12!==(pc+o)%12)m++;a.push(m);p=m}
-   const sc=Math.abs(a.reduce((x,y)=>x+y)/4-pa)+(a[3]>80?20:0);if(sc<bd){bd=sc;best=a}}
-  pa=best.reduce((x,y)=>x+y)/4;return{pc,q,voi:best,b:36+pc}});
- if(dl)dl.delayTime.value=60/sty.bpm*.75}
+   const sc=Math.abs(a.reduce((x,z)=>x+z)/4-pa)+(a[3]>80?20:0);if(sc<bd){bd=sc;best=a}}
+  pa=best.reduce((x,z)=>x+z)/4;return{pc,q,voi:best,b:36+pc}});
+ let cp=76,ph={},lastR=null;
+ const pick=(c,strong)=>{const set=Q[c.q][strong?'c':'m'],mid=(y.lo+y.hi)/2,a=[];
+  for(let m=y.lo;m<=y.hi;m++)if(set.includes(((m-c.pc)%12+12)%12))a.push([Math.abs(m-cp)+g()*3.5+Math.abs(m-mid)*.12+(m===cp?4:0),m]);
+  a.sort((x,z)=>x[0]-z[0]);return cp=a[0][1]};
+ for(let st=0;st<256;st++){const s=st%16,bar=st>>4,c=chs[bar%4],t=st*ST+(s%2?ST*y.sw:0),add=e=>ev.push([t+(e.o||0),e]);
+  if(s===0){if(y.pad)c.voi.forEach(m=>add({k:'pd',m,d:ST*15}));ph={};if(bar%2===0||!lastR)lastR=RH[R(RH.length)];lastR.forEach(([a,l])=>ph[a]=l)}
+  const bc=y.bass[s];if(bc!=='.')add({k:'b',m:c.b+(bc==='o'?12:bc==='f'?7:0),d:ST*2.4,v:rr(.75,1)});
+  if(cm[s]==='1'){const v=(s%4?.5:.7)*rr(.85,1.1),k=y.ce==='ep'?'e':'p';
+   if(y.arp){const i=ARP[s>>1];add({k,m:c.voi[i]+(i===3?12:0),d:ST*3,v})}else c.voi.forEach((m,i)=>add({k,m,d:ST*3,v:v*rr(.8,1),o:i*.011}))}
+  if(kk[s]==='1')add({k:'k',v:rr(.85,1)});
+  if(y.s[s]!=='0')add({k:'s',v:y.s[s]==='2'?.3:.85});else if(bar%4===3&&s>=14&&y.s!==Z)add({k:'s',v:.3+.15*(s-14)});
+  if(y.h[s]==='1')add({k:'h',v:(s%4?s%2?.35:.6:.9)*rr(.85,1.1)});
+  if(y.r[s]==='1')add({k:'r',v:(s%4?.55:.9)*rr(.85,1.1)});
+  if(ph[s]){const big=y.le==='ep'||y.le==='piano';add({k:'l',i:y.le,m:pick(c,s%4===0),d:Math.max(ph[s]*ST*.95,.25),v:Math.min(1,rr(.65,.95)*(big?1.15:1)),o:rr(0,.012)})}}
+ return{ev,loop:256*ST,bpm:y.bpm}}
 
-/* --- audio plumbing --- */
-function out(n,wet=.15,pan=0,ech=0){const p=ac.createStereoPanner();p.pan.value=pan;n.connect(p);p.connect(comp);
- const w=ac.createGain();w.gain.value=wet;p.connect(w);w.connect(conv);
- if(ech){const e=ac.createGain();e.gain.value=ech;p.connect(e);e.connect(echIn)}}
-const env=(g,t,a,pk,d,h=0)=>{g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(pk,t+a);g.gain.setValueAtTime(pk,t+a+h);g.gain.exponentialRampToValueAtTime(.0001,t+a+h+d)};
-const O=(f,ty,t,d)=>{const o=ac.createOscillator();o.type=ty;o.frequency.value=f;o.start(t);o.stop(t+d+.1);return o};
-function noise(t,d,ty,fr,v,q=1,wet=0){const s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();s.buffer=nb;f.type=ty;f.frequency.value=fr;f.Q.value=q;
- s.connect(f);f.connect(g);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.start(t,Math.random()*1.5,d+.05);out(g,wet)}
-
-/* --- instruments --- */
-function piano(m,t,v,d){const f=mf(m),g=ac.createGain(),lp=ac.createBiquadFilter(),D=Math.max(d,1.6)*(1.25-m/150);lp.frequency.value=900+v*5000;lp.connect(g);
- for(let k=1;k<=6;k++){const o=O(f*k*Math.sqrt(1+.0005*k*k),'sine',t,D),pg=ac.createGain();env(pg,t,.003,v*.2/Math.pow(k,1.1),D/(1+.7*(k-1)));o.connect(pg);pg.connect(lp)}
- noise(t,.03,'lowpass',2200,v*.05,1,.05);out(g,.22,rr(-.25,.25))}
-function ep(m,t,v,d){const f=mf(m),D=Math.max(d,1.4),c=O(f,'sine',t,D),md=O(f,'sine',t,D),mg=ac.createGain(),g=ac.createGain();
- mg.gain.setValueAtTime(f*(1+v*2.2),t);mg.gain.exponentialRampToValueAtTime(f*.15,t+.5);md.connect(mg);mg.connect(c.frequency);
- env(g,t,.003,v*.2,D);c.connect(g);const b=O(f*2,'sine',t,.3),bg=ac.createGain();env(bg,t,.002,v*.05,.25);b.connect(bg);bg.connect(g);out(g,.25,rr(-.3,.3))}
-function bass(m,t,v,d){const f=mf(m),o=O(f,'triangle',t,d),o2=O(f,'sine',t,d),lp=ac.createBiquadFilter(),g=ac.createGain();
- lp.frequency.setValueAtTime(900,t);lp.frequency.exponentialRampToValueAtTime(260,t+.2);o.connect(lp);lp.connect(g);o2.connect(g);env(g,t,.008,v*.3,d);out(g,.04)}
-function sax(m,t,v,d){const f=mf(m),g=ac.createGain(),fl=ac.createBiquadFilter(),fm=ac.createBiquadFilter(),lfo=O(5.3,'sine',t,d),lg=ac.createGain();
- fl.frequency.value=2200;fm.type='peaking';fm.frequency.value=1200;fm.gain.value=7;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(14,t+d*.7);lfo.connect(lg);
- [['sawtooth',1,.6],['square',1.004,.2]].forEach(([ty,r,w])=>{const o=O(f*r,ty,t,d),og=ac.createGain();o.detune.setValueAtTime(-35,t);o.detune.linearRampToValueAtTime(0,t+.07);lg.connect(o.detune);og.gain.value=w;o.connect(og);og.connect(fl)});
- fl.connect(fm);fm.connect(g);env(g,t,.06,v*.13,d*.4,d*.6);noise(t,.15,'bandpass',3000,v*.02);out(g,.3,.15,.25)}
-function gtr(m,t,v,d){const f=mf(m),g=ac.createGain(),lp=ac.createBiquadFilter();lp.frequency.setValueAtTime(3500,t);lp.frequency.exponentialRampToValueAtTime(1200,t+d);
- [['triangle',0,.8],['sawtooth',7,.22]].forEach(([ty,dt,w])=>{const o=O(f,ty,t,d),og=ac.createGain();o.detune.value=dt;og.gain.value=w;o.connect(og);og.connect(lp)});
- lp.connect(g);env(g,t,.02,v*.13,d*.3,d*.7);out(g,.35,-.1,.4)}
-function pad(m,t,d){const f=mf(m),g=ac.createGain(),lp=ac.createBiquadFilter();lp.frequency.value=1000;
- [-9,0,9].forEach(dt=>{const o=O(f,'sawtooth',t,d+1.5);o.detune.value=dt;o.connect(lp)});lp.connect(g);env(g,t,.9,.014,1.5,.8);out(g,.4,rr(-.4,.4))}
-
-/* --- drums --- */
-function kick(t,v){const o=O(140,'sine',t,.3),g=ac.createGain();o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(48,t+.1);env(g,t,.002,v*.5,.28);o.connect(g);out(g,0);noise(t,.02,'highpass',2500,v*.05)}
-function snare(t,v){noise(t,.17,'bandpass',2200,v*.26,.7,.12);const o=O(220,'triangle',t,.12),g=ac.createGain();o.frequency.exponentialRampToValueAtTime(170,t+.08);env(g,t,.001,v*.11,.1);o.connect(g);out(g,.1)}
-const hat=(t,v)=>noise(t,.045,'highpass',8500,v*.08,.8,.05),ride=(t,v)=>noise(t,.4,'bandpass',7800,v*.07,1.2,.15);
-
-/* --- ensemble --- */
-function pick(c,strong){const set=Q[c.q][strong?'c':'m'],mid=(sty.lo+sty.hi)/2,a=[];
- for(let m=sty.lo;m<=sty.hi;m++)if(set.includes(((m-c.pc)%12+12)%12))a.push([Math.abs(m-cp)+Math.random()*3.5+Math.abs(m-mid)*.12+(m===cp?4:0),m]);
- a.sort((x,y)=>x[0]-y[0]);return cp=a[0][1]}
-function sched(){while(nextT<ac.currentTime+.8){
- if(mix&&step>0&&step%256===0)setSong((song+1)%5);
- const ST=60/sty.bpm/4,s=step%16,bar=Math.floor(step/16),c=chs[bar%4],t=nextT+(s%2?ST*sty.sw:0),hu=()=>rr(0,.012);
- if(s===0){if(sty.pad)c.voi.forEach(m=>pad(m,t,ST*16));ph={};if(bar%2===0||!lastR)lastR=RH[R(RH.length)];lastR.forEach(([a,l])=>ph[a]=l)}
- const bc=sty.bass[s];if(bc!=='.')bass(c.b+(bc==='o'?12:bc==='f'?7:0),t,rr(.75,1),ST*2.6);
- if(sty.comp[s]==='1'){const v=(s%4?.55:.75)*rr(.85,1.1),I=sty.ce==='ep'?ep:piano;
-  if(sty.arp){const i=ARP[s>>1];I(c.voi[i]+(i===3?12:0),t+hu(),v,1.4)}else c.voi.forEach((m,i)=>I(m,t+i*.011+hu(),v*rr(.8,1),1.4))}
- if(sty.k[s]==='1')kick(t,rr(.85,1));
- if(sty.s[s]!=='0')snare(t,sty.s[s]==='2'?.3:.85);
- else if(bar%4===3&&s>=14&&sty.s!==Z)snare(t,.3+.15*(s-14));
- if(sty.h[s]==='1')hat(t,(s%4?s%2?.35:.6:.9)*rr(.85,1.1));
- if(sty.r[s]==='1')ride(t,(s%4?.55:.9)*rr(.85,1.1));
- if(ph[s]){const l=ph[s],n=pick(c,s%4===0),v=rr(.65,.95),L={sax,gtr,ep,piano}[sty.le];L(n,t+hu(),L===ep||L===piano?v*1.3:v,Math.max(l*ST*.95,.25))}
- nextT+=ST;step++}}
-
-function init(){ac=new (window.AudioContext||window.webkitAudioContext)();
- comp=ac.createDynamicsCompressor();comp.threshold.value=-16;comp.ratio.value=3;master=ac.createGain();comp.connect(master);master.connect(ac.destination);
- nb=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate);{const d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
- conv=ac.createConvolver();const L=Math.floor(ac.sampleRate*2.4),ib=ac.createBuffer(2,L,ac.sampleRate);
- for(let c=0;c<2;c++){const d=ib.getChannelData(c);let lp=0;for(let i=0;i<L;i++){lp+=((Math.random()*2-1)*Math.pow(1-i/L,2.8)-lp)*(.25+.5*(1-i/L));d[i]=lp}}
- conv.buffer=ib;const rg=ac.createGain();rg.gain.value=.9;conv.connect(rg);rg.connect(comp);
- echIn=ac.createGain();dl=ac.createDelay(2);const fb=ac.createGain(),lpE=ac.createBiquadFilter();fb.gain.value=.36;lpE.frequency.value=2600;
- echIn.connect(dl);dl.connect(lpE);lpE.connect(fb);fb.connect(dl);lpE.connect(comp);lpE.connect(conv);setSong(song);setVol()}
-function setVol(){if(master)master.gain.setTargetAtTime(muted?0:$('vol').value/100*.9,ac.currentTime,.05)}
-setSong(song);
-$('play').onclick=async()=>{
- if(!ac)init();
- if(!playing){await ac.resume();nextT=ac.currentTime+.15;timer=setInterval(sched,200);playing=true;$('play').textContent='❚❚ Pause music'}
- else{clearInterval(timer);ac.suspend();playing=false;$('play').textContent='▶ Play music'}
- $('play').setAttribute('aria-pressed',playing)};
-$('trk').onchange=()=>{const v=$('trk').value;mix=v==='m';if(!mix)song=+v;step=0;lastR=null;setSong(song)};
+let I=null,part=null,tr=-1,playing=false;
+const N=m=>Tone.Frequency(m,'midi').toNote();
+function build(){const bus=new Tone.Gain(1),rev=new Tone.Reverb({decay:2.6,wet:.3}),cmp=new Tone.Compressor(-18,3);bus.chain(rev,cmp,Tone.Destination);
+ const dly=new Tone.FeedbackDelay('8n.',.35);dly.wet.value=.3;dly.connect(bus);
+ const base='https://tonejs.github.io/audio/salamander/',u={};['A','C','D#','F#'].forEach(n=>[1,2,3,4,5,6].forEach(o=>{if(!(o===1&&n!=='A')&&!(o===6&&n!=='C'))u[n+o]=n.replace('#','s')+o+'.mp3'}));
+ const lead=o=>new Tone.MonoSynth({oscillator:{type:o},filter:{Q:2,type:'lowpass'},envelope:{attack:.06,decay:.1,sustain:.8,release:.15},filterEnvelope:{attack:.08,decay:.3,sustain:.5,release:.2,baseFrequency:700,octaves:2.2},portamento:.03,volume:-11});
+ const ch=new Tone.Chorus(4,2.5,.4).start(),vib=new Tone.Vibrato(5.3,.1),vib2=new Tone.Vibrato(5,.06),pf=new Tone.Filter(1200,'lowpass'),sf=new Tone.Filter(2000,'bandpass');
+ I={piano:new Tone.Sampler({urls:u,release:1,baseUrl:base}).connect(bus),
+  ep:new Tone.PolySynth(Tone.FMSynth,{harmonicity:1,modulationIndex:3,envelope:{attack:.005,decay:1.2,sustain:.1,release:1.2},modulationEnvelope:{attack:.002,decay:.5,sustain:.1,release:.5},volume:-9}).chain(ch,bus),
+  bass:new Tone.MonoSynth({oscillator:{type:'triangle'},envelope:{attack:.01,decay:.3,sustain:.4,release:.2},filterEnvelope:{attack:.01,decay:.2,sustain:.3,release:.2,baseFrequency:150,octaves:2.5},volume:-3}).connect(bus),
+  sax:lead('fatsawtooth').chain(vib,dly,bus),gtr:lead('triangle').chain(vib2,dly,bus),
+  pd:new Tone.PolySynth(Tone.Synth,{oscillator:{type:'fatsawtooth',count:3,spread:20},envelope:{attack:.9,decay:.2,sustain:.8,release:1.5},volume:-25}).chain(pf,bus),
+  k:new Tone.MembraneSynth({pitchDecay:.05,octaves:6,envelope:{attack:.001,decay:.3,sustain:0,release:.1},volume:-4}).connect(bus),
+  s:new Tone.NoiseSynth({envelope:{attack:.001,decay:.15,sustain:0},volume:-10}).chain(sf,bus),
+  h:new Tone.MetalSynth({frequency:300,envelope:{attack:.001,decay:.04,release:.01},harmonicity:5.1,modulationIndex:32,resonance:5000,octaves:1.5,volume:-27}).connect(bus),
+  r:new Tone.MetalSynth({frequency:250,envelope:{attack:.001,decay:.4,release:.1},harmonicity:5.1,modulationIndex:24,resonance:6000,octaves:1.5,volume:-29}).connect(bus),dly}}
+function hit(t,e){const d=e.d||.1;
+ switch(e.k){case'p':case'e':case'b':case'pd':I[e.k==='p'?'piano':e.k==='e'?'ep':e.k==='b'?'bass':'pd'].triggerAttackRelease(N(e.m),d,t,e.v);break;
+ case'l':I[e.i==='sax'?'sax':e.i==='gtr'?'gtr':e.i==='ep'?'ep':'piano'].triggerAttackRelease(N(e.m),d,t,e.v);break;
+ case'k':I.k.triggerAttackRelease('C1','8n',t,e.v);break;case's':I.s.triggerAttackRelease('16n',t,e.v);break;
+ case'h':I.h.triggerAttackRelease('32n',t,e.v);break;case'r':I.r.triggerAttackRelease('8n',t,e.v)}}
+function loadTrack(i){tr=i;const [n,si]=TRACKS[i],c=compose(si,hash(n));Tone.Transport.stop();Tone.Transport.bpm.value=c.bpm;I.dly.delayTime.value=60/c.bpm*.75;
+ if(part)part.dispose();part=new Tone.Part(hit,c.ev).start(0);part.loop=true;part.loopEnd=c.loop;$('np').textContent='♪ '+n;if(playing)Tone.Transport.start('+0.1')}
+async function boot(){if(!window.Tone){$('np').textContent='Music engine could not load (needs internet).';return false}
+ if(!I){await Tone.start();build();$('np').textContent='Loading instruments…';await Tone.loaded();loadTrack(Math.floor(Math.random()*TRACKS.length))}return true}
+const setPlay=p=>{playing=p;$('play').textContent=p?'❚❚ Pause music':'▶ Play music';$('play').setAttribute('aria-pressed',p);p?Tone.Transport.start('+0.1'):Tone.Transport.pause()};
+$('play').onclick=async()=>{if(await boot())setPlay(!playing)};
+$('rnd').onclick=async()=>{if(!(await boot()))return;let i;do{i=Math.floor(Math.random()*TRACKS.length)}while(i===tr);loadTrack(i);if(!playing)setPlay(true)};
+function setVol(){if(window.Tone){Tone.Destination.mute=muted;Tone.Destination.volume.value=Tone.gainToDb(Math.max(.001,$('vol').value/100))}}
+let muted=false;
 $('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'Unmute':'Mute';$('mute').setAttribute('aria-pressed',muted);setVol()};
 $('vol').oninput=setVol;
 </script>
