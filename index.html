@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 <title>Retro Weather</title>
 <style>
 :root{--navy:#0a1560;--royal:#1f3fc4;--sky:#5a8cff;--gold:#ffd23a;--white:#f4f6ff;--plum:#3b1a78}
@@ -66,7 +65,7 @@ h2{font-size:28px;margin-bottom:8px}.row{font-size:24px;padding:3px 0}
 .big{margin-bottom:6px}.big .t{font-size:88px}.big .i{font-size:72px}.big .c{font-size:26px}
 .card{font-size:15px;padding:6px}.card .i{font-size:40px}.card .t{font-size:26px}
 .msg{font-size:20px}.ticker{font-size:18px;padding:5px 0}.hr{font-size:18px}.hr .i{font-size:26px}
-.map{max-height:330px}
+.map{max-height:330px}.mapw{position:relative}.mapw.sat:after{content:"";position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px;border:3px solid #ff2a2a;border-radius:50%;box-shadow:0 0 0 2px #000,0 0 8px #000;pointer-events:none}
 .bar{background:#0a1560;border-top:2px solid var(--sky);font-size:13px;padding:8px 10px;gap:8px;flex-wrap:wrap}
 #nx{display:flex;align-items:center;gap:8px;font-size:15px;background:#000;color:var(--gold);border:3px solid var(--gold);padding:4px 12px;box-shadow:0 0 0 2px #000,0 0 14px rgba(255,210,58,.6)}
 #nx svg{width:40px;height:32px;fill:var(--gold)}
@@ -97,12 +96,8 @@ h2{font-size:28px;margin-bottom:8px}.row{font-size:24px;padding:3px 0}
 <div class="ticker"><span id="tick">Welcome. Allow location access to see your local forecast.</span></div>
 </div></div>
 <div class="bar"><button id="nx" aria-label="Next screen"><svg viewBox="0 0 10 8" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="3" width="6" height="2"/><rect x="6" y="0" width="1" height="8"/><rect x="7" y="1" width="1" height="6"/><rect x="8" y="2" width="1" height="4"/><rect x="9" y="3" width="1" height="2"/></svg>NEXT</button>
-  <button id="play" aria-pressed="false">▶ Play music</button>
-  <button id="mute" aria-pressed="false">Mute</button>
-  <label>Volume <input id="vol" type="range" min="0" max="100" value="60"></label>
   <form id="sf"><input id="q" type="text" placeholder="City or ZIP" aria-label="City or ZIP"><button>Go</button></form>
-  <button id="rnd">🎲 Random track</button><span id="np" style="font-size:15px"></span>
-  <div class="n">Data: National Weather Service (NOAA)<br>Music: original, jazz-fusion inspired<br><span id="upd"></span></div>
+  <div class="n">Data: National Weather Service (NOAA)<br><span id="upd"></span></div>
 </div>
 <script>
 /* ---------- Clock ---------- */
@@ -112,10 +107,12 @@ setInterval(()=>{const d=new Date();$('clock').innerHTML=d.toLocaleTimeString([]
 /* ---------- Screen rotation (like "Local on the 8s") ---------- */
 let cur=0;const WORLD=[['Tokyo',35.68,139.69],['Delhi',28.61,77.21],['Shanghai',31.23,121.47],['São Paulo',-23.55,-46.63],['Mexico City',19.43,-99.13],['Cairo',30.04,31.24],['Mumbai',19.08,72.88],['Beijing',39.9,116.4],['Dhaka',23.81,90.41],['Osaka',34.69,135.5]];
 const US=[['Asheville',35.6,-82.55],['Charlotte',35.23,-80.84],['Knoxville',35.96,-83.92],['Atlanta',33.75,-84.39],['Raleigh',35.78,-78.64],['Greenville SC',34.85,-82.4],['Nashville',36.16,-86.78],['Columbia SC',34,-81.03],['Richmond',37.54,-77.44],['Washington DC',38.9,-77.04],['Birmingham',33.52,-86.8],['Louisville',38.25,-85.76],['Charleston SC',32.78,-79.93],['Jacksonville',30.33,-81.66],['Memphis',35.15,-90.05],['Pittsburgh',40.44,-79.99],['Philadelphia',39.95,-75.17],['New York',40.71,-74.01],['Chicago',41.88,-87.63],['Miami',25.76,-80.19],['Houston',29.76,-95.37],['Dallas',32.78,-96.8],['Denver',39.74,-104.99],['Los Angeles',34.05,-118.24],['Seattle',47.61,-122.33],['Phoenix',33.45,-112.07],['Boston',42.36,-71.06]];
-const MAPS=[['Satellite','https://cdn.star.nesdis.noaa.gov/GOES19/ABI/CONUS/GEOCOLOR/1250x750.jpg'],['Moisture (Water Vapor)','https://cdn.star.nesdis.noaa.gov/GOES19/ABI/CONUS/09/1250x750.jpg'],['National Radar (Rain)','https://radar.weather.gov/ridge/standard/CONUS_0.gif']];
+const MAPS=[['Satellite: Visible','GOESEastconusband02',''],['Satellite: Water Vapor','GOESEastconusband08','&palette=wv2.pal'],['Satellite: Infrared','GOESEastconusband14','&palette=ir2.pal']];
+let LOC=null;
 {const e=document.createElement('section');e.className='screen alert skip';e.id='sAL';e.innerHTML='<h2>⚠ EMERGENCY ALERT</h2><div id="al" class="msg"></div>';document.querySelector('main').prepend(e)}
 const add=(t,b)=>{const e=document.createElement('section');e.className='screen';e.id='s'+document.querySelectorAll('.screen').length;e.innerHTML='<h2>'+t+'</h2>'+b;document.querySelector('main').appendChild(e)};
-MAPS.forEach(([t,u])=>add(t,'<img class="map" data-src="'+u+'" alt="'+t+'">'));
+MAPS.forEach(([t,b,p])=>add(t,'<div class="mapw sat"><img class="map" data-sat="'+b+'" data-pal="'+p+'" alt="'+t+'"></div>'));
+add('National Radar (Rain)','<div class="mapw"><img class="map" data-src="https://radar.weather.gov/ridge/standard/CONUS_0.gif" alt="National radar"></div>');
 add('Nearby Cities','<div id="nb"></div>');add('World Cities (1/2)','<div id="wc1"></div>');add('World Cities (2/2)','<div id="wc2"></div>');
 const WM=c=>c===0?'Clear':c<3?'Partly cloudy':c===3?'Overcast':c<50?'Fog':c<60?'Drizzle':c<70?'Rain':c<80?'Snow':c<90?'Showers':'Thunderstorm';
 async function cities(l,id){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code&temperature_unit=fahrenheit&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
@@ -123,11 +120,19 @@ async function cities(l,id){try{const r=await(await fetch('https://api.open-mete
 async function nearby(l){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=1&timezone=auto&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
  $('nb').innerHTML='<div class="grid">'+l.map((c,i)=>{const u=a[i].current,d=a[i].daily,w=WM(u.weather_code);return '<div class="card"><b>'+c[0]+'</b><div class="i">'+icon(w)+'</div><div class="t">'+Math.round(u.temperature_2m)+'°</div>'+w+'<br>H '+Math.round(d.temperature_2m_max[0])+'° L '+Math.round(d.temperature_2m_min[0])+'°<br>Wind '+Math.round(u.wind_speed_10m)+' mph<br>Humidity '+u.relative_humidity_2m+'%<br>Rain '+(d.precipitation_probability_max[0]??0)+'%</div>'}).join('')+'</div>'}catch(e){$('nb').textContent='City data unavailable.'}}
 const nearest=(a,b)=>US.map(c=>[c,(c[1]-a)**2+((c[2]-b)*Math.cos(a*Math.PI/180))**2]).sort((x,y)=>x[1]-y[1]).slice(0,3).map(x=>x[0]);
-function snaps(){document.querySelectorAll('img.map').forEach(i=>{i.onerror=()=>{i.style.opacity=.15;i.alt='Image unavailable right now'};i.src=i.dataset.src+'?t='+Math.floor(Date.now()/9e5)})}
+function snaps(){document.querySelectorAll('img.map').forEach(i=>{i.onerror=()=>{i.style.opacity=.15;i.alt='Image unavailable right now'};const t='&t='+Math.floor(Date.now()/9e5);
+ if(i.dataset.sat){if(!LOC)return;i.src='https://weather.ndc.nasa.gov/cgi-bin/get-abi?satellite='+i.dataset.sat+'&lat='+LOC[0].toFixed(2)+'&lon='+LOC[1].toFixed(2)+'&zoom=2&width=620&height=340&quality=80'+i.dataset.pal+t}
+ else i.src=i.dataset.src+'?'+t.slice(1)})}
 snaps();setInterval(snaps,15*60*1000);
 setTimeout(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},0);setInterval(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},30*60*1000);
 const scr=()=>[...document.querySelectorAll('.screen')];
-function show(i){const a=scr();a.forEach(e=>e.classList.remove('on'));cur=(i+a.length)%a.length;a[cur].classList.add('on')}
+function show(i){const a=scr();a.forEach(e=>e.classList.remove('on'));cur=(i+a.length)%a.length;a[cur].classList.add('on');fitScr()}
+function fitScr(){const c=scr().find(e=>e.classList.contains('on'));if(!c||c.querySelector('img.map'))return;
+ const H=document.querySelector('main').clientHeight-16,ap=k=>{c.style.width=(100/k)+'%';c.style.transform='scale('+k+')';return c.offsetHeight*k};
+ c.style.height='auto';c.style.transformOrigin='0 0';let k=1,h=ap(1);k=Math.min(1.8,H/h);
+ for(let n=0;n<5&&k>1;n++){h=ap(k);if(h<=H)break;k*=H/h*.97}
+ ap(Math.max(1,k))}
+setInterval(()=>fitScr(),2000);
 function next(){const a=scr();let i=cur;do{i=(i+1)%a.length}while(a[i].classList.contains('skip'));show(i)}
 let tmr;const arm=()=>{clearInterval(tmr);tmr=setInterval(next,10000)};cur=scr().indexOf($('s0'));arm();
 $('nx').onclick=()=>{next();arm()};
@@ -193,7 +198,7 @@ async function load(lat,lon){nearby(nearest(lat,lon));
  }
 }
 let rt;
-function go(a,b){try{localStorage.setItem('rw',JSON.stringify([a,b]))}catch(e){}clearInterval(rt);load(a,b);rt=setInterval(()=>load(a,b),600000)}
+function go(a,b){LOC=[a,b];snaps();try{localStorage.setItem('rw',JSON.stringify([a,b]))}catch(e){}clearInterval(rt);load(a,b);rt=setInterval(()=>load(a,b),600000)}
 function saved(){try{const c=JSON.parse(localStorage.getItem('rw'));if(c){go(c[0],c[1]);return true}}catch(e){}return false}
 function ask(msg){$('loc').textContent='Location needed';
  $('cur').innerHTML=msg+'<br><br><button id="lb" style="font:inherit;color:#0a1560;background:#ffd23a;border:0;padding:10px 16px;cursor:pointer;box-shadow:2px 2px 0 #000">Use my location</button><br><br>Or search a US city or ZIP in the bar below.';
@@ -210,76 +215,6 @@ $('sf').onsubmit=async e=>{e.preventDefault();const q=$('q').value.split(',')[0]
   if(!r.results)throw 0;go(r.results[0].latitude,r.results[0].longitude)}
  catch(x){$('cur').textContent='No match for "'+q+'". Try a US city name or ZIP code.'}};
 start();
-
-/* ---------- Jazz-fusion engine: synthesized instruments, real chord voicings, reverb ---------- */
-const Z='0'.repeat(16),R=n=>Math.floor(Math.random()*n),rr=(a,b)=>a+Math.random()*(b-a),mf=m=>440*Math.pow(2,(m-69)/12);
-// v = voicing stack, m = melody notes, c = chord tones for strong beats (all offsets from chord root)
-const Q={maj9:{v:[11,4,7,2],m:[0,2,4,7,9,11],c:[4,7,11,2]},m9:{v:[10,3,7,2],m:[0,2,3,5,7,10],c:[3,7,10,2]},dom13:{v:[10,4,9,2],m:[0,2,4,7,9,10],c:[4,10,9,2]},lyd:{v:[4,11,2,6],m:[0,2,4,6,7,11],c:[4,6,11,2]},six9:{v:[4,9,2,7],m:[0,2,4,7,9],c:[4,9,2,7]}};
-const SONGS=[
- {bpm:104,sw:.1,ch:[[0,'maj9'],[9,'m9'],[5,'lyd'],[7,'dom13']],bass:'r..r..o.r.f..o.r',comp:'0010010010010010',ce:'ep',le:'sax',pad:0,k:'1000001000100010',s:'0000100200001002',h:'1111111111111111',r:Z,lo:69,hi:88},
- {bpm:92,sw:0,ch:[[0,'lyd'],[9,'m9'],[5,'maj9'],[2,'six9']],bass:'r.......f...o...',comp:'1010101010101010',arp:1,ce:'ep',le:'gtr',pad:1,k:'1000000000100000',s:'0000000000001000',h:Z,r:'1010101010101010',lo:67,hi:86},
- {bpm:98,sw:.16,ch:[[0,'m9'],[5,'dom13'],[10,'maj9'],[7,'m9']],bass:'r.r..ro.r..fr.o.',comp:'0100101001001010',ce:'ep',le:'ep',pad:0,k:'1000001100100010',s:'0000100200001001',h:'1111111111111111',r:Z,lo:66,hi:86},
- {bpm:88,sw:.24,ch:[[0,'maj9'],[9,'m9'],[2,'m9'],[7,'dom13']],bass:'r.....f.r.o...f.',comp:'1000100100101000',ce:'piano',le:'piano',pad:0,k:'1000000010100000',s:'0000100000001000',h:'1010101010101010',r:Z,lo:67,hi:86},
- {bpm:76,sw:.08,ch:[[0,'maj9'],[5,'lyd'],[4,'m9'],[7,'dom13']],bass:'r.......f...r...',comp:'1010101010101010',arp:1,ce:'piano',le:'piano',pad:1,k:'1000000000100000',s:'0000000000001000',h:Z,r:'1010101010101010',lo:64,hi:86}];
-const RH=[[[0,3],[3,3],[6,2],[8,6]],[[2,2],[4,4],[8,3],[11,2],[13,3]],[[0,2],[2,2],[4,2],[6,6],[12,4]],[[3,3],[6,3],[10,2],[12,4]],[[0,6],[8,2],[10,2],[12,4]],[[1,2],[3,2],[6,4],[10,6]],[]],ARP=[0,1,2,3,2,3,1,2];
-/* ---------- Pre-arranged tracks: each name has a fixed arrangement, played with Tone.js sampled + synth instruments ---------- */
-const TRACKS=[['Sunny Day Jamming',0],['Windy Sax',0],['Barometer Boogie',2],['Cloud Nine Funk',2],['Isobar Groove',1],['Humidity Rag',3],['Jet Stream Lounge',1],['Doppler Shuffle',3],['Thunder Nap Ballad',4],['Fog Horn Fantasy',4],['Pressure Front Strut',0],['Dew Point Blues',3]];
-const hash=s=>[...s].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7);
-const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
-function compose(si,seed){const y=SONGS[si],g=rng(seed),R=n=>Math.floor(g()*n),rr=(a,b)=>a+g()*(b-a),T=R(12),rot=R(4),ST=60/y.bpm/4,ev=[];
- const mut=p=>p===Z?p:[...p].map((c,i)=>i&&g()<.1?(c==='0'?'1':'0'):c).join(''),kk=mut(y.k),cm=y.arp?y.comp:mut(y.comp);let pa=64;
- const chs=[...y.ch.slice(rot),...y.ch.slice(0,rot)].map(([d,q])=>{const pc=(T+d)%12;let best,bd=1e9;
-  for(let f=50;f<=60;f++){const a=[];let p=f-2;for(const o of Q[q].v){let m=p+2;while(m%12!==(pc+o)%12)m++;a.push(m);p=m}
-   const sc=Math.abs(a.reduce((x,z)=>x+z)/4-pa)+(a[3]>80?20:0);if(sc<bd){bd=sc;best=a}}
-  pa=best.reduce((x,z)=>x+z)/4;return{pc,q,voi:best,b:36+pc}});
- let cp=76,ph={},lastR=null;
- const pick=(c,strong)=>{const set=Q[c.q][strong?'c':'m'],mid=(y.lo+y.hi)/2,a=[];
-  for(let m=y.lo;m<=y.hi;m++)if(set.includes(((m-c.pc)%12+12)%12))a.push([Math.abs(m-cp)+g()*3.5+Math.abs(m-mid)*.12+(m===cp?4:0),m]);
-  a.sort((x,z)=>x[0]-z[0]);return cp=a[0][1]};
- for(let st=0;st<256;st++){const s=st%16,bar=st>>4,c=chs[bar%4],t=st*ST+(s%2?ST*y.sw:0),add=e=>ev.push([t+(e.o||0),e]);
-  if(s===0){if(y.pad)c.voi.forEach(m=>add({k:'pd',m,d:ST*15}));ph={};if(bar%2===0||!lastR)lastR=RH[R(RH.length)];lastR.forEach(([a,l])=>ph[a]=l)}
-  const bc=y.bass[s];if(bc!=='.')add({k:'b',m:c.b+(bc==='o'?12:bc==='f'?7:0),d:ST*2.4,v:rr(.75,1)});
-  if(cm[s]==='1'){const v=(s%4?.5:.7)*rr(.85,1.1),k=y.ce==='ep'?'e':'p';
-   if(y.arp){const i=ARP[s>>1];add({k,m:c.voi[i]+(i===3?12:0),d:ST*3,v})}else c.voi.forEach((m,i)=>add({k,m,d:ST*3,v:v*rr(.8,1),o:i*.011}))}
-  if(kk[s]==='1')add({k:'k',v:rr(.85,1)});
-  if(y.s[s]!=='0')add({k:'s',v:y.s[s]==='2'?.3:.85});else if(bar%4===3&&s>=14&&y.s!==Z)add({k:'s',v:.3+.15*(s-14)});
-  if(y.h[s]==='1')add({k:'h',v:(s%4?s%2?.35:.6:.9)*rr(.85,1.1)});
-  if(y.r[s]==='1')add({k:'r',v:(s%4?.55:.9)*rr(.85,1.1)});
-  if(ph[s]){const big=y.le==='ep'||y.le==='piano';add({k:'l',i:y.le,m:pick(c,s%4===0),d:Math.max(ph[s]*ST*.95,.25),v:Math.min(1,rr(.65,.95)*(big?1.15:1)),o:rr(0,.012)})}}
- return{ev,loop:256*ST,bpm:y.bpm}}
-
-let I=null,part=null,tr=-1,playing=false;
-const N=m=>Tone.Frequency(m,'midi').toNote();
-function build(){const bus=new Tone.Gain(1),rev=new Tone.Reverb({decay:2.6,wet:.3}),cmp=new Tone.Compressor(-18,3);bus.chain(rev,cmp,Tone.Destination);
- const dly=new Tone.FeedbackDelay('8n.',.35);dly.wet.value=.3;dly.connect(bus);
- const base='https://tonejs.github.io/audio/salamander/',u={};['A','C','D#','F#'].forEach(n=>[1,2,3,4,5,6].forEach(o=>{if(!(o===1&&n!=='A')&&!(o===6&&n!=='C'))u[n+o]=n.replace('#','s')+o+'.mp3'}));
- const lead=o=>new Tone.MonoSynth({oscillator:{type:o},filter:{Q:2,type:'lowpass'},envelope:{attack:.06,decay:.1,sustain:.8,release:.15},filterEnvelope:{attack:.08,decay:.3,sustain:.5,release:.2,baseFrequency:700,octaves:2.2},portamento:.03,volume:-11});
- const ch=new Tone.Chorus(4,2.5,.4).start(),vib=new Tone.Vibrato(5.3,.1),vib2=new Tone.Vibrato(5,.06),pf=new Tone.Filter(1200,'lowpass'),sf=new Tone.Filter(2000,'bandpass');
- I={piano:new Tone.Sampler({urls:u,release:1,baseUrl:base}).connect(bus),
-  ep:new Tone.PolySynth(Tone.FMSynth,{harmonicity:1,modulationIndex:3,envelope:{attack:.005,decay:1.2,sustain:.1,release:1.2},modulationEnvelope:{attack:.002,decay:.5,sustain:.1,release:.5},volume:-9}).chain(ch,bus),
-  bass:new Tone.MonoSynth({oscillator:{type:'triangle'},envelope:{attack:.01,decay:.3,sustain:.4,release:.2},filterEnvelope:{attack:.01,decay:.2,sustain:.3,release:.2,baseFrequency:150,octaves:2.5},volume:-3}).connect(bus),
-  sax:lead('fatsawtooth').chain(vib,dly,bus),gtr:lead('triangle').chain(vib2,dly,bus),
-  pd:new Tone.PolySynth(Tone.Synth,{oscillator:{type:'fatsawtooth',count:3,spread:20},envelope:{attack:.9,decay:.2,sustain:.8,release:1.5},volume:-25}).chain(pf,bus),
-  k:new Tone.MembraneSynth({pitchDecay:.05,octaves:6,envelope:{attack:.001,decay:.3,sustain:0,release:.1},volume:-4}).connect(bus),
-  s:new Tone.NoiseSynth({envelope:{attack:.001,decay:.15,sustain:0},volume:-10}).chain(sf,bus),
-  h:new Tone.MetalSynth({frequency:300,envelope:{attack:.001,decay:.04,release:.01},harmonicity:5.1,modulationIndex:32,resonance:5000,octaves:1.5,volume:-27}).connect(bus),
-  r:new Tone.MetalSynth({frequency:250,envelope:{attack:.001,decay:.4,release:.1},harmonicity:5.1,modulationIndex:24,resonance:6000,octaves:1.5,volume:-29}).connect(bus),dly}}
-function hit(t,e){const d=e.d||.1;
- switch(e.k){case'p':case'e':case'b':case'pd':I[e.k==='p'?'piano':e.k==='e'?'ep':e.k==='b'?'bass':'pd'].triggerAttackRelease(N(e.m),d,t,e.v);break;
- case'l':I[e.i==='sax'?'sax':e.i==='gtr'?'gtr':e.i==='ep'?'ep':'piano'].triggerAttackRelease(N(e.m),d,t,e.v);break;
- case'k':I.k.triggerAttackRelease('C1','8n',t,e.v);break;case's':I.s.triggerAttackRelease('16n',t,e.v);break;
- case'h':I.h.triggerAttackRelease('32n',t,e.v);break;case'r':I.r.triggerAttackRelease('8n',t,e.v)}}
-function loadTrack(i){tr=i;const [n,si]=TRACKS[i],c=compose(si,hash(n));Tone.Transport.stop();Tone.Transport.bpm.value=c.bpm;I.dly.delayTime.value=60/c.bpm*.75;
- if(part)part.dispose();part=new Tone.Part(hit,c.ev).start(0);part.loop=true;part.loopEnd=c.loop;$('np').textContent='♪ '+n;if(playing)Tone.Transport.start('+0.1')}
-async function boot(){if(!window.Tone){$('np').textContent='Music engine could not load (needs internet).';return false}
- if(!I){await Tone.start();build();$('np').textContent='Loading instruments…';await Tone.loaded();loadTrack(Math.floor(Math.random()*TRACKS.length))}return true}
-const setPlay=p=>{playing=p;$('play').textContent=p?'❚❚ Pause music':'▶ Play music';$('play').setAttribute('aria-pressed',p);p?Tone.Transport.start('+0.1'):Tone.Transport.pause()};
-$('play').onclick=async()=>{if(await boot())setPlay(!playing)};
-$('rnd').onclick=async()=>{if(!(await boot()))return;let i;do{i=Math.floor(Math.random()*TRACKS.length)}while(i===tr);loadTrack(i);if(!playing)setPlay(true)};
-function setVol(){if(window.Tone){Tone.Destination.mute=muted;Tone.Destination.volume.value=Tone.gainToDb(Math.max(.001,$('vol').value/100))}}
-let muted=false;
-$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'Unmute':'Mute';$('mute').setAttribute('aria-pressed',muted);setVol()};
-$('vol').oninput=setVol;
 </script>
 </body>
 </html>
