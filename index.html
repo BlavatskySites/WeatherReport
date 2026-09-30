@@ -184,7 +184,7 @@ async function load(lat,lon){nearby(nearest(lat,lon));
    document.querySelector('.ticker').classList.toggle('alert',al.length>0);
    emergency(al);if(al.length)$('tick').textContent=al.map(a=>'⚠ '+a.properties.event.toUpperCase()+': '+(a.properties.headline||'')).join('   •   ')+'   •   '+$('tick').textContent}catch(e){}
   // Current observation (first station that reports a temperature)
-  let o=null;
+  let o=null; 
   for(const s of st.features.slice(0,4)){try{const r=(await jget(s.id+'/observations/latest')).properties;if(v(r.temperature)!=null){o=r;o.sid=s.properties.stationIdentifier;break}}catch(e){}}
   if(o){
    const f=c=>Math.round(c*9/5+32),t=v(o.temperature),w=v(o.windSpeed),h=v(o.relativeHumidity),b=v(o.barometricPressure),vi=v(o.visibility);
