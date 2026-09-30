@@ -222,6 +222,7 @@ start();
 
 /* ---------- Music: random mp3 from a public Google Drive folder ---------- */
 const DRIVE_FOLDER='1MVD1BCj4-DA7tcebm4bZVisGK1Dp2tnX',DRIVE_KEY=''; // <-- paste your free Google API key between the quotes
+const LIST_URL='https://script.google.com/macros/s/AKfycby03IhNb7FdThmOtq0Mk-4US1vsJxfVdM-4S7h1fD8fMNw8HDiQ9akQDdmjGvmcl-79Tw/exec'; // paste your free Apps Script web-app URL here (ends in /exec)
 const FILE_IDS=[]; // optional no-key fallback, e.g. [['Song name','driveFileId'],...]
 let songs=[],last=-1,fails=0;const aud=$('aud');
 async function scrape(){const u='https://drive.google.com/embeddedfolderview?id='+DRIVE_FOLDER;
@@ -230,12 +231,13 @@ async function scrape(){const u='https://drive.google.com/embeddedfolderview?id=
   const au=all.filter(x=>/\.(mp3|m4a|wav|ogg|flac)$/i.test(x[1])),use=au.length?au:all;
   if(use.length)return use.map(x=>({n:x[1].replace(/\.[^.]+$/,''),u:'https://drive.google.com/uc?export=download&id='+x[0]}))}catch(e){}}return[]}
 async function loadSongs(){
- if(DRIVE_KEY){try{const r=await(await fetch('https://www.googleapis.com/drive/v3/files?pageSize=1000&fields=files(id,name,mimeType)&q='+encodeURIComponent("'"+DRIVE_FOLDER+"' in parents and trashed=false")+'&key='+DRIVE_KEY)).json();
+ if(LIST_URL){try{const r=await(await fetch(LIST_URL)).json();songs=r.filter(f=>/\.(mp3|m4a|wav|ogg|flac)$/i.test(f.name)).map(f=>({n:f.name.replace(/\.[^.]+$/,''),u:'https://drive.google.com/uc?export=download&id='+f.id}))}catch(e){}}
+ else if(DRIVE_KEY){try{const r=await(await fetch('https://www.googleapis.com/drive/v3/files?pageSize=1000&fields=files(id,name,mimeType)&q='+encodeURIComponent("'"+DRIVE_FOLDER+"' in parents and trashed=false")+'&key='+DRIVE_KEY)).json();
   songs=(r.files||[]).filter(f=>/^audio\//.test(f.mimeType)||/\.mp3$/i.test(f.name)).map(f=>({n:f.name.replace(/\.[^.]+$/,''),u:'https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media&key='+DRIVE_KEY}))}catch(e){}}
  else{try{const c=JSON.parse(localStorage.getItem('rwsongs')||'null');if(c&&Date.now()-c.t<216e5)songs=c.s}catch(e){}
   if(!songs.length){songs=await scrape();if(songs.length){try{localStorage.setItem('rwsongs',JSON.stringify({t:Date.now(),s:songs}))}catch(e){}}}}
  if(!songs.length)songs=FILE_IDS.map(([n,id])=>({n,u:'https://drive.google.com/uc?export=download&id='+id}));
- if(!songs.length)$('np').textContent='Could not list the Drive folder'}
+ if(!songs.length)$('np').textContent='Music: folder list unavailable (see setup)'}
 function pickSong(){if(!songs.length){$('np').textContent=$('np').textContent||'No songs loaded';return}
  let i;do{i=Math.floor(Math.random()*songs.length)}while(songs.length>1&&i===last);last=i;aud.src=songs[i].u;$('np').textContent='♪ '+songs[i].n;
  aud.play().then(()=>{$('play').textContent='❚❚ Pause'}).catch(()=>{})}
