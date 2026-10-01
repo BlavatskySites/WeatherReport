@@ -86,6 +86,16 @@ button#nx svg{height:55%;width:auto;fill:var(--gold);filter:drop-shadow(0 0 6px 
 .stack{position:relative;flex:1;min-height:0;border:4px solid var(--sky);background:#000;overflow:hidden;filter:contrast(1.2) saturate(1.3)}
 .stack img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover}
 .stack:after{content:"";position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px;border:3px solid #ff2a2a;border-radius:50%;box-shadow:0 0 0 2px #000,0 0 8px #000}
+@supports(height:100dvh){html,body{height:100dvh}}
+html,body{overflow-x:hidden;max-width:100vw}
+#stage,.top{width:100%;max-width:100vw;box-sizing:border-box}
+.tv{overflow:hidden}.screen{overflow:hidden;overflow-wrap:anywhere}
+.hr>span,.row>span,.card{min-width:0;overflow-wrap:anywhere}
+.top form{flex:1 1 100%;min-width:0;gap:6px}
+.top #q{font-size:22px;padding:11px 14px;min-height:46px;border-radius:0}
+.top form button{font-size:20px;padding:0 22px;min-height:46px;font-weight:700}
+.stack img:nth-child(3){filter:brightness(1.6) drop-shadow(0 0 2px #000)}
+.you{position:absolute;left:50%;top:50%;transform:translate(-50%,20px);color:#fff;font-size:18px;font-weight:700;text-shadow:2px 2px 0 #000,-1px -1px 0 #000;white-space:nowrap;z-index:2}
 </style>
 </head>
 <body>
@@ -97,7 +107,7 @@ button#nx svg{height:55%;width:auto;fill:var(--gold);filter:drop-shadow(0 0 6px 
 </defs></svg>
 <div class="top"><form id="sf"><input id="q" type="text" placeholder="ZIP or city" aria-label="ZIP or city"><button>Go</button></form>
 <span class="mus"><button id="play" title="Play music">♪</button><button id="rnd" title="Random song">⤮</button><button id="mute" title="Mute">🔈</button><input id="vol" type="range" min="0" max="100" value="40" aria-label="Volume"><span id="np"></span></span>
-<span class="n">NOAA <span id="upd"></span> <b>v12</b></span><audio id="aud" preload="none"></audio></div>
+<span class="n">NOAA <span id="upd"></span> <b>v13</b></span><audio id="aud" preload="none"></audio></div>
 <div id="stage"><div class="tv">
 <header>
   <div class="ttl">Retro Weather<small id="loc">Locating…</small></div>
@@ -128,17 +138,18 @@ const dark=B=>'https://services.arcgisonline.com/arcgis/rest/services/Canvas/Wor
 const radar=B=>['https://mapservices.weather.noaa.gov/eventdriven/rest/services/radar/radar_base_reflectivity/MapServer/export?dpi=96&transparent=true&format=png32&bboxSR=4326&imageSR=4326&f=image&size='+CW+',800&bbox='+B,
  'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/radar_base_reflectivity/MapServer/export?dpi=96&transparent=true&format=png32&bboxSR=4326&imageSR=4326&f=image&size='+CW+',800&bbox='+B,
  'https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=conus_bref_qcd&STYLES=&FORMAT=image/png&TRANSPARENT=true&SRS=EPSG:4326&WIDTH='+CW+'&HEIGHT=800&BBOX='+B];
+const lab=B=>['https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/export?dpi=96&bboxSR=4326&imageSR=4326&format=png32&transparent=true&f=image&size='+Math.round(CW*.55)+',440&bbox='+B];
 const coast=B=>[gibs('Coastlines_15m',B,0)];
 const MAPS=[
- {t:'Satellite',h:6,a:(B,S)=>[gibs(S+'_ABI_GeoColor',B,1),gibs('GOES-East_ABI_GeoColor',B,1)],b:coast},
- {t:'Moisture (Water Vapor)',h:6,a:(B,S)=>[gibs(S+'_ABI_Band9_Mid_Level_Water_Vapor',B,1),gibs(S+'_ABI_Air_Mass',B,1),gibs('GOES-East_ABI_Air_Mass',B,1)],b:coast},
- {t:'Infrared (Cloud Tops)',h:6,a:(B,S)=>[gibs(S+'_ABI_Band13_Clean_Infrared',B,1),gibs(S+'_ABI_GeoColor',B,1)],b:coast},
- {t:'Regional Radar (Rain)',h:9,a:B=>[dark(B)],b:radar},
- {t:'Local Radar (Rain)',h:3,a:B=>[dark(B)],b:radar}];
+ {t:'Satellite',h:6,a:(B,S)=>[gibs(S+'_ABI_GeoColor',B,1),gibs('GOES-East_ABI_GeoColor',B,1)],b:coast,c:lab},
+ {t:'Moisture (Water Vapor)',h:6,a:(B,S)=>[gibs(S+'_ABI_Band9_Mid_Level_Water_Vapor',B,1),gibs(S+'_ABI_Air_Mass',B,1),gibs('GOES-East_ABI_Air_Mass',B,1)],b:coast,c:lab},
+ {t:'Infrared (Cloud Tops)',h:6,a:(B,S)=>[gibs(S+'_ABI_Band13_Clean_Infrared',B,1),gibs(S+'_ABI_GeoColor',B,1)],b:coast,c:lab},
+ {t:'Regional Radar (Rain)',h:9,a:B=>[dark(B)],b:radar,c:lab},
+ {t:'Local Radar (Rain)',h:3,a:B=>[dark(B)],b:radar,c:lab}];
 let LOC=null,RADAR=null,CW=800;
 {const e=document.createElement('section');e.className='screen alert skip';e.id='sAL';e.innerHTML='<h2>⚠ EMERGENCY ALERT</h2><div id="al" class="msg"></div>';document.querySelector('main').prepend(e)}
 const add=(t,b)=>{const e=document.createElement('section');e.className='screen';e.id='s'+document.querySelectorAll('.screen').length;e.innerHTML='<h2>'+t+'</h2>'+b;document.querySelector('main').appendChild(e)};
-MAPS.forEach((m,i)=>add(m.t,'<div class="mapw" data-i="'+i+'"><div class="stack"><img alt=""><img alt=""></div><div class="cap"></div></div>'));
+MAPS.forEach((m,i)=>add(m.t,'<div class="mapw" data-i="'+i+'"><div class="stack"><img alt=""><img alt=""><img alt=""><div class="you"></div></div><div class="cap"></div></div>'));
 add('Nearby Cities','<div id="nb"></div>');add('World Cities (1/2)','<div id="wc1"></div>');add('World Cities (2/2)','<div id="wc2"></div>');
 const WM=c=>c===0?'Clear':c<3?'Partly cloudy':c===3?'Overcast':c<50?'Fog':c<60?'Drizzle':c<70?'Rain':c<80?'Snow':c<90?'Showers':'Thunderstorm';
 async function cities(l,id){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code&temperature_unit=fahrenheit&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
@@ -149,7 +160,7 @@ const nearest=(a,b)=>US.map(c=>[c,(c[1]-a)**2+((c[2]-b)*Math.cos(a*Math.PI/180))
 function snaps(){const L=LOC||[39.5,-98.5],S=L[1]<-104?'GOES-West':'GOES-East',t='&t='+Math.floor(Date.now()/9e5);
  document.querySelectorAll('.mapw').forEach(w=>{const m=MAPS[w.dataset.i],B=bb(L,m.h),im=(CW=Math.round(800/Math.cos(L[0]*Math.PI/180)),w.querySelectorAll('img')),cap=w.querySelector('.cap');
   cap.textContent=LOC?'Centered on your location (red ring)':'Location not set - showing central US';
-  [m.a,m.b].forEach((f,k)=>{const c=f(B,S);let n=0;im[k].style.opacity=1;im[k].onerror=()=>{if(++n<c.length)im[k].src=c[n]+t;else{im[k].style.opacity=0;if(!k)cap.textContent='Map data unavailable right now'}};im[k].src=c[0]+t})})}
+  [m.a,m.b,m.c].forEach((f,k)=>{const c=f(B,S);let n=0;im[k].style.opacity=1;im[k].onerror=()=>{if(++n<c.length)im[k].src=c[n]+t;else{im[k].style.opacity=0;if(!k)cap.textContent='Map data unavailable right now'}};im[k].src=c[0]+t})})}
 snaps();setInterval(snaps,15*60*1000);
 setTimeout(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},0);setInterval(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},30*60*1000);
 const scr=()=>[...document.querySelectorAll('.screen')];
@@ -166,9 +177,10 @@ $('nx').onclick=()=>{next();arm()};
 function emergency(al){const e=$('sAL');e.classList.toggle('skip',!al.length);
  $('al').innerHTML=al.slice(0,3).map(a=>{const p=a.properties;return '<p style="margin:0 0 8px"><b>'+p.event.toUpperCase()+'</b> - '+(p.areaDesc||'').slice(0,70)+'<br>'+(p.headline||'').slice(0,120)+'<br>'+(p.description||'').replace(/\s+/g,' ').slice(0,200)+'…</p>'}).join('');
  if(al.length&&!emergency.shown){emergency.shown=1;show(scr().indexOf(e));arm()}if(!al.length)emergency.shown=0}
-function fit(){const st=$('stage'),w=st.clientWidth,h=st.clientHeight,k=Math.min(w/640,h/480),tv=document.querySelector('.tv'),W=(w/k)+'px',H=(h/k)+'px';
- tv.style.width=tv.style.minWidth=W;tv.style.height=tv.style.minHeight=H;tv.style.transform='scale('+k+')';fitScr()}
-addEventListener('resize',fit);fit();
+function fit(){const r=$('stage').getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height);if(!w||!h)return;
+ const k=Math.min(w/640,h/480),tv=document.querySelector('.tv'),W=(w/k)+'px',H=(h/k)+'px';
+ tv.style.width=tv.style.minWidth=tv.style.maxWidth=W;tv.style.height=tv.style.minHeight=H;tv.style.transform='scale('+k+')';fitScr()}
+addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,250));if(window.ResizeObserver)new ResizeObserver(fit).observe($('stage'));fit();
 
 /* ---------- NOAA (api.weather.gov) ---------- */
 const CLP='M20 48C11 48 8 38 15 34C14 26 23 21 29 26C33 17 47 19 48 29C57 29 59 44 50 48Z';
@@ -193,7 +205,7 @@ const v=x=>x&&x.value!=null?x.value:null;
 async function load(lat,lon){nearby(nearest(lat,lon));
  try{
   const pt=(await jget(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`)).properties;
-  const rl=pt.relativeLocation.properties;if(pt.radarStation&&RADAR!==pt.radarStation){RADAR=pt.radarStation;snaps()}$('loc').textContent=`${rl.city}, ${rl.state}`;
+  const rl=pt.relativeLocation.properties;if(pt.radarStation&&RADAR!==pt.radarStation){RADAR=pt.radarStation;snaps()}$('loc').textContent=`${rl.city}, ${rl.state}`;document.querySelectorAll('.you').forEach(e=>e.textContent='▲ '+$('loc').textContent);
   const [fc,hr,st]=await Promise.all([jget(pt.forecast),jget(pt.forecastHourly),jget(pt.observationStations)]);
   const P=fc.properties.periods;
   // Extended forecast
