@@ -99,7 +99,7 @@ h2{font-size:28px;margin-bottom:8px}.row{font-size:24px;padding:3px 0}
 </div></div>
 <div class="bar"><button id="nx" aria-label="Next screen"><svg viewBox="0 0 10 8" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="3" width="6" height="2"/><rect x="6" y="0" width="1" height="8"/><rect x="7" y="1" width="1" height="6"/><rect x="8" y="2" width="1" height="4"/><rect x="9" y="3" width="1" height="2"/></svg>NEXT</button><button id="play">▶ Play music</button><button id="rnd">🎲 Random</button><button id="mute">Mute</button><input id="vol" type="range" min="0" max="100" value="60" aria-label="Volume"><span id="np" style="font-size:13px"></span><audio id="aud" preload="none"></audio>
   <form id="sf"><input id="q" type="text" placeholder="City or ZIP" aria-label="City or ZIP"><button>Go</button></form>
-  <div class="n">Data: National Weather Service (NOAA)<br><b>Build: mp3-folder v8</b><br><span id="upd"></span></div>
+  <div class="n">Data: National Weather Service (NOAA)<br><b>Build: Mp3-folder v10</b><br><span id="upd"></span></div>
 </div>
 <script>
 /* ---------- Clock ---------- */
@@ -222,15 +222,18 @@ $('sf').onsubmit=async e=>{e.preventDefault();const q=$('q').value.split(',')[0]
 start();
 
 /* ---------- Music: random mp3 from the repo's mp3/ folder ---------- */
-let songs=[],last=-1,fails=0;const aud=$('aud'),isAudio=n=>/\.(mp3|m4a|ogg|wav)$/i.test(n),mk=n=>({n:n.replace(/\.[^.]+$/,''),u:'mp3/'+encodeURIComponent(n)});
-async function loadSongs(){
- try{const r=await fetch('mp3/playlist.json');if(r.ok){const j=await r.json();songs=j.map(x=>typeof x==='string'?x:x.name).filter(isAudio).map(mk)}}catch(e){}
- if(!songs.length){try{const c=JSON.parse(localStorage.getItem('rwsongs2')||'null');if(c&&Date.now()-c.t<216e5)songs=c.s}catch(e){}}
- if(!songs.length&&/github\.io$/.test(location.hostname)){
-  const o=location.hostname.split('.')[0],p=location.pathname.split('/')[1],repo=p&&!/\.html?$/.test(p)?p:o+'.github.io';
-  try{const r=await(await fetch('https://api.github.com/repos/'+o+'/'+repo+'/contents/mp3')).json();songs=r.filter(f=>f.type==='file'&&isAudio(f.name)).map(f=>mk(f.name));
-   if(songs.length)localStorage.setItem('rwsongs2',JSON.stringify({t:Date.now(),s:songs}))}catch(e){}}
- $('np').textContent=songs.length?songs.length+' songs ready':'No songs found in mp3/ folder'}
+let songs=[],last=-1,fails=0;const aud=$('aud'),isAudio=n=>/\.(mp3|m4a|ogg|wav)$/i.test(n),mk=(n,d='Mp3')=>({n:n.replace(/\.[^.]+$/,''),u:d+'/'+encodeURIComponent(n)});
+async function loadSongs(){let why='';
+ try{const r=await fetch('Mp3/playlist.json');if(r.ok){const j=await r.json();songs=j.map(x=>typeof x==='string'?x:x.name).filter(isAudio).map(n=>mk(n))}}catch(e){}
+ if(!songs.length){try{const c=JSON.parse(localStorage.getItem('rwsongs3')||'null');if(c&&Date.now()-c.t<216e5)songs=c.s}catch(e){}}
+ if(!songs.length){
+  if(!/github\.io$/.test(location.hostname))why='not on github.io - add Mp3/playlist.json';
+  else{const o=location.hostname.split('.')[0],p=location.pathname.split('/')[1],repo=p&&!/\.html?$/.test(p)?p:o+'.github.io';
+   for(const d of ['Mp3','mp3','MP3','music','Music']){try{const r=await fetch('https://api.github.com/repos/'+o+'/'+repo+'/contents/'+d),j=await r.json();
+     if(!r.ok){why=o+'/'+repo+'/'+d+' -> '+(j.message||r.status);continue}
+     const l=j.filter(f=>f.type==='file'&&isAudio(f.name));
+     if(l.length){songs=l.map(f=>mk(f.name,d));try{localStorage.setItem('rwsongs3',JSON.stringify({t:Date.now(),s:songs}))}catch(e){}break}why=d+'/ has no audio files'}catch(e){why='network error: '+e.message}}}}
+ $('np').textContent=songs.length?songs.length+' songs ready':'No songs: '+why}
 function pickSong(){if(!songs.length)return;let i;do{i=Math.floor(Math.random()*songs.length)}while(songs.length>1&&i===last);last=i;aud.src=songs[i].u;$('np').textContent='♪ '+songs[i].n;
  aud.play().then(()=>{$('play').textContent='❚❚ Pause'}).catch(()=>{})}
 $('play').onclick=()=>{if(!aud.src)return pickSong();if(aud.paused){aud.play();$('play').textContent='❚❚ Pause'}else{aud.pause();$('play').textContent='▶ Play music'}};
