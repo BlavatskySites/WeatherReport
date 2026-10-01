@@ -74,6 +74,18 @@ h2{font-size:28px;margin-bottom:8px}.row{font-size:24px;padding:3px 0}
 @keyframes blink{50%{background:#600}}
 .screen.alert .msg{font-size:16px}
 .map{width:100%;height:330px;max-height:none;object-fit:cover}.mapw.sat:after{display:none}.cap{font-size:15px;text-align:center;color:var(--gold);text-shadow:1px 1px 0 #000;margin-top:4px}
+.top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:5px 8px;background:#0a1560;border-bottom:2px solid var(--sky);font-size:12px}
+.top form{display:flex;gap:4px;flex:1;min-width:150px}.top #q{flex:1;max-width:none;min-width:0;padding:5px 7px;font-size:14px}
+.top button{font:inherit;padding:4px 9px;color:#0a1560;background:#ffd23a;border:0;cursor:pointer}
+.mus{display:flex;align-items:center;gap:4px;opacity:.6}.mus button{background:transparent;color:#cfd8ff;padding:2px 6px;font-size:14px}
+.mus input{width:56px;max-width:56px;flex:none}#np{font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top .n{font-size:10px;opacity:.6;white-space:nowrap}
+button#nx{display:flex;align-items:center;justify-content:center;gap:5vw;width:100%;height:15vh;min-height:56px;padding:0;border:0;border-top:3px solid var(--gold);background:#000;color:var(--gold);font:inherit;font-weight:700;font-size:min(7vw,34px);letter-spacing:.2em;cursor:pointer;box-shadow:inset 0 0 24px rgba(255,210,58,.35)}
+button#nx svg{height:55%;width:auto;fill:var(--gold);filter:drop-shadow(0 0 6px rgba(255,210,58,.8))}button#nx:active{background:#222}
+.mapw{display:flex;flex-direction:column;height:calc(100% - 62px)}
+.stack{position:relative;flex:1;min-height:0;border:4px solid var(--sky);background:#000;overflow:hidden;filter:contrast(1.2) saturate(1.3)}
+.stack img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover}
+.stack:after{content:"";position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px;border:3px solid #ff2a2a;border-radius:50%;box-shadow:0 0 0 2px #000,0 0 8px #000}
 </style>
 </head>
 <body>
@@ -83,6 +95,9 @@ h2{font-size:28px;margin-bottom:8px}.row{font-size:24px;padding:3px 0}
 <linearGradient id="gCl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#c6d3f5"/><stop offset="1" stop-color="#8296cf"/></linearGradient>
 <linearGradient id="gDk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4bad0"/><stop offset="1" stop-color="#525a80"/></linearGradient>
 </defs></svg>
+<div class="top"><form id="sf"><input id="q" type="text" placeholder="ZIP or city" aria-label="ZIP or city"><button>Go</button></form>
+<span class="mus"><button id="play" title="Play music">♪</button><button id="rnd" title="Random song">⤮</button><button id="mute" title="Mute">🔈</button><input id="vol" type="range" min="0" max="100" value="40" aria-label="Volume"><span id="np"></span></span>
+<span class="n">NOAA <span id="upd"></span> <b>v12</b></span><audio id="aud" preload="none"></audio></div>
 <div id="stage"><div class="tv">
 <header>
   <div class="ttl">Retro Weather<small id="loc">Locating…</small></div>
@@ -97,10 +112,7 @@ h2{font-size:28px;margin-bottom:8px}.row{font-size:24px;padding:3px 0}
 </main>
 <div class="ticker"><span id="tick">Welcome. Allow location access to see your local forecast.</span></div>
 </div></div>
-<div class="bar"><button id="nx" aria-label="Next screen"><svg viewBox="0 0 10 8" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="3" width="6" height="2"/><rect x="6" y="0" width="1" height="8"/><rect x="7" y="1" width="1" height="6"/><rect x="8" y="2" width="1" height="4"/><rect x="9" y="3" width="1" height="2"/></svg>NEXT</button><button id="play">▶ Play music</button><button id="rnd">🎲 Random</button><button id="mute">Mute</button><input id="vol" type="range" min="0" max="100" value="60" aria-label="Volume"><span id="np" style="font-size:13px"></span><audio id="aud" preload="none"></audio>
-  <form id="sf"><input id="q" type="text" placeholder="City or ZIP" aria-label="City or ZIP"><button>Go</button></form>
-  <div class="n">Data: National Weather Service (NOAA)<br><b>Build: Mp3-folder v10</b><br><span id="upd"></span></div>
-</div>
+<button id="nx" aria-label="Next screen"><svg viewBox="0 0 10 8" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="3" width="6" height="2"/><rect x="6" y="0" width="1" height="8"/><rect x="7" y="1" width="1" height="6"/><rect x="8" y="2" width="1" height="4"/><rect x="9" y="3" width="1" height="2"/></svg><span>NEXT</span></button>
 <script>
 /* ---------- Clock ---------- */
 const $=id=>document.getElementById(id);
@@ -109,13 +121,24 @@ setInterval(()=>{const d=new Date();$('clock').innerHTML=d.toLocaleTimeString([]
 /* ---------- Screen rotation (like "Local on the 8s") ---------- */
 let cur=0;const WORLD=[['Tokyo',35.68,139.69],['Delhi',28.61,77.21],['Shanghai',31.23,121.47],['São Paulo',-23.55,-46.63],['Mexico City',19.43,-99.13],['Cairo',30.04,31.24],['Mumbai',19.08,72.88],['Beijing',39.9,116.4],['Dhaka',23.81,90.41],['Osaka',34.69,135.5]];
 const US=[['Asheville',35.6,-82.55],['Charlotte',35.23,-80.84],['Knoxville',35.96,-83.92],['Atlanta',33.75,-84.39],['Raleigh',35.78,-78.64],['Greenville SC',34.85,-82.4],['Nashville',36.16,-86.78],['Columbia SC',34,-81.03],['Richmond',37.54,-77.44],['Washington DC',38.9,-77.04],['Birmingham',33.52,-86.8],['Louisville',38.25,-85.76],['Charleston SC',32.78,-79.93],['Jacksonville',30.33,-81.66],['Memphis',35.15,-90.05],['Pittsburgh',40.44,-79.99],['Philadelphia',39.95,-75.17],['New York',40.71,-74.01],['Chicago',41.88,-87.63],['Miami',25.76,-80.19],['Houston',29.76,-95.37],['Dallas',32.78,-96.8],['Denver',39.74,-104.99],['Los Angeles',34.05,-118.24],['Seattle',47.61,-122.33],['Phoenix',33.45,-112.07],['Boston',42.36,-71.06]];
-const SECTORS=[['se',33,-83,19],['ne',42.5,-74,19],['cgl',43,-86,19],['umv',44.5,-93,19],['smv',33,-91,19],['sp',33,-99,19],['sr',37,-107,19],['nr',45,-111,19],['pnw',46,-121,18],['psw',35,-120,18]];
-const MAPS=[['Satellite: GeoColor','GEOCOLOR'],['Satellite: Water Vapor','09'],['Satellite: Infrared','13']];
-let LOC=null,RADAR=null;
+const bb=(L,h)=>{const w=h/Math.cos(L[0]*Math.PI/180);return[L[1]-w,L[0]-h,L[1]+w,L[0]+h].map(x=>x.toFixed(4)).join(',')};
+const G='https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=EPSG:4326';
+const gibs=(l,B,op)=>G+'&WIDTH='+CW+'&HEIGHT=800&LAYERS='+l+'&BBOX='+B+(op?'&FORMAT=image/jpeg':'&FORMAT=image/png&TRANSPARENT=TRUE');
+const dark=B=>'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Base/MapServer/export?bboxSR=4326&imageSR=4326&size='+CW+',800&format=jpg&f=image&bbox='+B;
+const radar=B=>['https://mapservices.weather.noaa.gov/eventdriven/rest/services/radar/radar_base_reflectivity/MapServer/export?dpi=96&transparent=true&format=png32&bboxSR=4326&imageSR=4326&f=image&size='+CW+',800&bbox='+B,
+ 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/radar_base_reflectivity/MapServer/export?dpi=96&transparent=true&format=png32&bboxSR=4326&imageSR=4326&f=image&size='+CW+',800&bbox='+B,
+ 'https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=conus_bref_qcd&STYLES=&FORMAT=image/png&TRANSPARENT=true&SRS=EPSG:4326&WIDTH='+CW+'&HEIGHT=800&BBOX='+B];
+const coast=B=>[gibs('Coastlines_15m',B,0)];
+const MAPS=[
+ {t:'Satellite',h:6,a:(B,S)=>[gibs(S+'_ABI_GeoColor',B,1),gibs('GOES-East_ABI_GeoColor',B,1)],b:coast},
+ {t:'Moisture (Water Vapor)',h:6,a:(B,S)=>[gibs(S+'_ABI_Band9_Mid_Level_Water_Vapor',B,1),gibs(S+'_ABI_Air_Mass',B,1),gibs('GOES-East_ABI_Air_Mass',B,1)],b:coast},
+ {t:'Infrared (Cloud Tops)',h:6,a:(B,S)=>[gibs(S+'_ABI_Band13_Clean_Infrared',B,1),gibs(S+'_ABI_GeoColor',B,1)],b:coast},
+ {t:'Regional Radar (Rain)',h:9,a:B=>[dark(B)],b:radar},
+ {t:'Local Radar (Rain)',h:3,a:B=>[dark(B)],b:radar}];
+let LOC=null,RADAR=null,CW=800;
 {const e=document.createElement('section');e.className='screen alert skip';e.id='sAL';e.innerHTML='<h2>⚠ EMERGENCY ALERT</h2><div id="al" class="msg"></div>';document.querySelector('main').prepend(e)}
 const add=(t,b)=>{const e=document.createElement('section');e.className='screen';e.id='s'+document.querySelectorAll('.screen').length;e.innerHTML='<h2>'+t+'</h2>'+b;document.querySelector('main').appendChild(e)};
-MAPS.forEach(([t,f])=>add(t,'<div class="mapw"><img class="map" data-folder="'+f+'" alt="'+t+'"><div class="cap"></div></div>'));
-add('Local Radar (Rain)','<div class="mapw"><img class="map" alt="Local radar"><div class="cap"></div></div>');
+MAPS.forEach((m,i)=>add(m.t,'<div class="mapw" data-i="'+i+'"><div class="stack"><img alt=""><img alt=""></div><div class="cap"></div></div>'));
 add('Nearby Cities','<div id="nb"></div>');add('World Cities (1/2)','<div id="wc1"></div>');add('World Cities (2/2)','<div id="wc2"></div>');
 const WM=c=>c===0?'Clear':c<3?'Partly cloudy':c===3?'Overcast':c<50?'Fog':c<60?'Drizzle':c<70?'Rain':c<80?'Snow':c<90?'Showers':'Thunderstorm';
 async function cities(l,id){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code&temperature_unit=fahrenheit&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
@@ -123,18 +146,17 @@ async function cities(l,id){try{const r=await(await fetch('https://api.open-mete
 async function nearby(l){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=1&timezone=auto&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
  $('nb').innerHTML='<div class="grid">'+l.map((c,i)=>{const u=a[i].current,d=a[i].daily,w=WM(u.weather_code);return '<div class="card"><b>'+c[0]+'</b><div class="i">'+icon(w)+'</div><div class="t">'+Math.round(u.temperature_2m)+'°</div>'+w+'<br>H '+Math.round(d.temperature_2m_max[0])+'° L '+Math.round(d.temperature_2m_min[0])+'°<br>Wind '+Math.round(u.wind_speed_10m)+' mph<br>Humidity '+u.relative_humidity_2m+'%<br>Rain '+(d.precipitation_probability_max[0]??0)+'%</div>'}).join('')+'</div>'}catch(e){$('nb').textContent='City data unavailable.'}}
 const nearest=(a,b)=>US.map(c=>[c,(c[1]-a)**2+((c[2]-b)*Math.cos(a*Math.PI/180))**2]).sort((x,y)=>x[1]-y[1]).slice(0,3).map(x=>x[0]);
-function snaps(){const L=LOC||[39.5,-98.5],k=Math.cos(L[0]*Math.PI/180),S=SECTORS.map(c=>[(c[1]-L[0])**2+((c[2]-L[1])*k)**2,c]).sort((a,b)=>a[0]-b[0])[0][1],t='?t='+Math.floor(Date.now()/9e5),ST='https://cdn.star.nesdis.noaa.gov/GOES';
- document.querySelectorAll('img.map').forEach(i=>{const cap=i.nextElementSibling;let chain;
-  if(i.dataset.folder){chain=[ST+S[3]+'/ABI/SECTOR/'+S[0]+'/'+i.dataset.folder+'/1200x1200.jpg',ST+'19/ABI/CONUS/'+i.dataset.folder+'/1250x750.jpg'];cap.textContent='GOES-'+S[3]+' '+S[0].toUpperCase()+' sector nearest you'}
-  else{chain=[(RADAR?'https://radar.weather.gov/ridge/standard/'+RADAR+'_0.gif':'https://radar.weather.gov/ridge/standard/CONUS_0.gif'),'https://radar.weather.gov/ridge/standard/CONUS_0.gif'];cap.textContent=RADAR?'NWS radar '+RADAR:'National radar'}
-  let n=0;i.style.opacity=1;i.onerror=()=>{n++;if(n<chain.length)i.src=chain[n]+t;else{i.style.opacity=.2;cap.textContent='Image failed to load from '+new URL(chain[0]).hostname}};i.src=chain[0]+t})}
+function snaps(){const L=LOC||[39.5,-98.5],S=L[1]<-104?'GOES-West':'GOES-East',t='&t='+Math.floor(Date.now()/9e5);
+ document.querySelectorAll('.mapw').forEach(w=>{const m=MAPS[w.dataset.i],B=bb(L,m.h),im=(CW=Math.round(800/Math.cos(L[0]*Math.PI/180)),w.querySelectorAll('img')),cap=w.querySelector('.cap');
+  cap.textContent=LOC?'Centered on your location (red ring)':'Location not set - showing central US';
+  [m.a,m.b].forEach((f,k)=>{const c=f(B,S);let n=0;im[k].style.opacity=1;im[k].onerror=()=>{if(++n<c.length)im[k].src=c[n]+t;else{im[k].style.opacity=0;if(!k)cap.textContent='Map data unavailable right now'}};im[k].src=c[0]+t})})}
 snaps();setInterval(snaps,15*60*1000);
 setTimeout(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},0);setInterval(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},30*60*1000);
 const scr=()=>[...document.querySelectorAll('.screen')];
 function show(i){const a=scr();a.forEach(e=>e.classList.remove('on'));cur=(i+a.length)%a.length;a[cur].classList.add('on');fitScr()}
-function fitScr(){const c=scr().find(e=>e.classList.contains('on'));if(!c||c.querySelector('img.map'))return;
+function fitScr(){const c=scr().find(e=>e.classList.contains('on'));if(!c||c.querySelector('.mapw'))return;
  const H=document.querySelector('main').clientHeight-16,ap=k=>{c.style.width=(100/k)+'%';c.style.transform='scale('+k+')';return c.offsetHeight*k};
- c.style.height='auto';c.style.transformOrigin='0 0';let k=1,h=ap(1);k=Math.min(1.8,H/h);
+ c.style.height='auto';c.style.transformOrigin='0 0';let k=1,h=ap(1);k=Math.min(3.2,H/h);
  for(let n=0;n<5&&k>1;n++){h=ap(k);if(h<=H)break;k*=H/h*.97}
  ap(Math.max(1,k))}
 setInterval(()=>fitScr(),2000);
@@ -144,8 +166,8 @@ $('nx').onclick=()=>{next();arm()};
 function emergency(al){const e=$('sAL');e.classList.toggle('skip',!al.length);
  $('al').innerHTML=al.slice(0,3).map(a=>{const p=a.properties;return '<p style="margin:0 0 8px"><b>'+p.event.toUpperCase()+'</b> - '+(p.areaDesc||'').slice(0,70)+'<br>'+(p.headline||'').slice(0,120)+'<br>'+(p.description||'').replace(/\s+/g,' ').slice(0,200)+'…</p>'}).join('');
  if(al.length&&!emergency.shown){emergency.shown=1;show(scr().indexOf(e));arm()}if(!al.length)emergency.shown=0}
-function fit(){const st=$('stage'),w=st.clientWidth,h=st.clientHeight;let kx=w/640,ky=h/480;const r=kx/ky;if(r>1.25)kx=ky*1.25;else if(r<.8)ky=kx/.8;
- document.querySelector('.tv').style.transform='translate('+(w-640*kx)/2+'px,'+(h-480*ky)/2+'px) scale('+kx+','+ky+')'}
+function fit(){const st=$('stage'),w=st.clientWidth,h=st.clientHeight,k=Math.min(w/640,h/480),tv=document.querySelector('.tv'),W=(w/k)+'px',H=(h/k)+'px';
+ tv.style.width=tv.style.minWidth=W;tv.style.height=tv.style.minHeight=H;tv.style.transform='scale('+k+')';fitScr()}
 addEventListener('resize',fit);fit();
 
 /* ---------- NOAA (api.weather.gov) ---------- */
@@ -215,7 +237,7 @@ function locate(){
   if(saved())return;
   ask(e.code===1?'Location is blocked for this site. Click the lock icon in the address bar, set Location to Allow, then press the button. If the site is inside a preview frame, open its own web address instead.':'Could not get your location. Check that location services are on, then try again.')},{timeout:20000,maximumAge:600000})}
 function start(){locate()}
-$('sf').onsubmit=async e=>{e.preventDefault();const q=$('q').value.split(',')[0].trim();if(!q)return;$('cur').textContent='Searching…';
+$('sf').onsubmit=async e=>{e.preventDefault();const q=$('q').value.split(',')[0].trim();if(!q)return;$('cur').textContent='Searching…';if(/^\d{5}$/.test(q)){try{const z=await(await fetch('https://api.zippopotam.us/us/'+q)).json();return go(+z.places[0].latitude,+z.places[0].longitude)}catch(x){}}
  try{const r=await(await fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&format=json&name='+encodeURIComponent(q))).json();
   if(!r.results)throw 0;go(r.results[0].latitude,r.results[0].longitude)}
  catch(x){$('cur').textContent='No match for "'+q+'". Try a US city name or ZIP code.'}};
@@ -235,12 +257,12 @@ async function loadSongs(){let why='';
      if(l.length){songs=l.map(f=>mk(f.name,d));try{localStorage.setItem('rwsongs3',JSON.stringify({t:Date.now(),s:songs}))}catch(e){}break}why=d+'/ has no audio files'}catch(e){why='network error: '+e.message}}}}
  $('np').textContent=songs.length?songs.length+' songs ready':'No songs: '+why}
 function pickSong(){if(!songs.length)return;let i;do{i=Math.floor(Math.random()*songs.length)}while(songs.length>1&&i===last);last=i;aud.src=songs[i].u;$('np').textContent='♪ '+songs[i].n;
- aud.play().then(()=>{$('play').textContent='❚❚ Pause'}).catch(()=>{})}
-$('play').onclick=()=>{if(!aud.src)return pickSong();if(aud.paused){aud.play();$('play').textContent='❚❚ Pause'}else{aud.pause();$('play').textContent='▶ Play music'}};
+ aud.play().then(()=>{$('play').textContent='❚❚'}).catch(()=>{})}
+$('play').onclick=()=>{if(!aud.src)return pickSong();if(aud.paused){aud.play();$('play').textContent='❚❚'}else{aud.pause();$('play').textContent='♪'}};
 $('rnd').onclick=pickSong;
 aud.onplaying=()=>{fails=0};aud.onended=pickSong;
 aud.onerror=()=>{if(++fails<4)setTimeout(pickSong,800);else $('np').textContent='Playback failed - check the file names in mp3/'};
-$('mute').onclick=()=>{aud.muted=!aud.muted;$('mute').textContent=aud.muted?'Unmute':'Mute'};
+$('mute').onclick=()=>{aud.muted=!aud.muted;$('mute').textContent=aud.muted?'🔇':'🔈'};
 $('vol').oninput=()=>{aud.volume=$('vol').value/100};aud.volume=.6;
 loadSongs();
 </script>
