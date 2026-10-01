@@ -123,6 +123,13 @@ button#nx svg{fill:#000080;filter:none}
 .top #q{font-size:17px;padding:8px 10px;min-height:34px}
 .top form button{font-size:15px;padding:0 16px;min-height:34px}
 button#nx{height:11.25vh;min-height:42px;font-size:min(5.25vw,25.5px);gap:3.75vw}
+.hr{font-size:16px}.hr .i{font-size:22px}
+/* smaller, calmer type on every screen except the 6-day forecast and the maps */
+.row{font-size:18px;padding:3px 0}.big{gap:14px}.big .t{font-size:64px}.big .i{font-size:56px}.big .c{font-size:20px}
+.msg{font-size:16px}
+.hr{font-size:14px;padding:3px 0}.hr .i{font-size:20px}
+#nb .grid{gap:8px}
+#nb .card{font-size:12px;line-height:1.5;padding:8px 4px}#nb .card b{font-size:14px}#nb .card .i{font-size:34px;margin:2px 0}#nb .card .t{font-size:22px}
 </style>
 </head>
 <body>
@@ -134,7 +141,7 @@ button#nx{height:11.25vh;min-height:42px;font-size:min(5.25vw,25.5px);gap:3.75vw
 </defs></svg>
 <div class="top"><form id="sf"><input id="q" type="text" placeholder="ZIP or city" aria-label="ZIP or city"><button>Go</button></form>
 <span class="mus"><button id="play" title="Play music">♪</button><button id="rnd" title="Random song">⤮</button><button id="mute" title="Mute">🔈</button><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume"><span id="np"></span></span>
-<span class="n">NOAA <span id="upd"></span> <b>v19</b></span><audio id="aud" preload="none"></audio></div>
+<span class="n">NOAA <span id="upd"></span> <b>v21</b></span><audio id="aud" preload="none"></audio></div>
 <div id="stage"><div class="tv">
 <header>
   <div class="ttl">Retro Weather<small id="loc">Locating…</small></div>
@@ -195,7 +202,8 @@ function show(i){const a=scr();a.forEach(e=>e.classList.remove('on'));cur=(i+a.l
 function fitScr(){const c=scr().find(e=>e.classList.contains('on'));if(!c||c.querySelector('.mapw'))return;
  const H=document.querySelector('main').clientHeight-16,set=k=>{c.style.width=(100/k)+'%';c.style.transform='scale('+k+')'};
  c.style.height='auto';c.style.transformOrigin='0 0';set(1);
- let k=Math.min(3.2,H/Math.max(1,c.offsetHeight));
+ const mx=c.querySelector('#ext')?1.15:1;
+ let k=Math.min(mx,H/Math.max(1,c.offsetHeight));
  for(let n=0;n<16&&k>.4;n++){set(k);if(c.offsetHeight*k<=H&&c.scrollWidth<=c.clientWidth+1)break;k*=.93}
  set(k)}
 setInterval(()=>fitScr(),2000);
