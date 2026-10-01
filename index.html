@@ -220,35 +220,22 @@ $('sf').onsubmit=async e=>{e.preventDefault();const q=$('q').value.split(',')[0]
  catch(x){$('cur').textContent='No match for "'+q+'". Try a US city name or ZIP code.'}};
 start();
 
-/* ---------- Music: random mp3 from a public Google Drive folder ---------- */
-const DRIVE_FOLDER='1MVD1BCj4-DA7tcebm4bZVisGK1Dp2tnX',DRIVE_KEY=''; // <-- paste your free Google API key between the quotes
-const LIST_URL='https://script.google.com/macros/s/AKfycby03IhNb7FdThmOtq0Mk-4US1vsJxfVdM-4S7h1fD8fMNw8HDiQ9akQDdmjGvmcl-79Tw/exec'; // paste your free Apps Script web-app URL here (ends in /exec)
-const FILE_IDS=[]; // optional no-key fallback, e.g. [['Song name','driveFileId'],...]
-let songs=[],last=-1,fails=0,ci=0;const URLS=id=>['https://drive.usercontent.google.com/download?id='+id+'&export=download&confirm=t','https://docs.google.com/uc?export=open&id='+id,'https://drive.google.com/uc?export=download&id='+id];const aud=$('aud');
-async function scrape(){const u='https://drive.google.com/embeddedfolderview?id='+DRIVE_FOLDER;
- for(const p of ['https://api.allorigins.win/raw?url=','https://corsproxy.io/?']){try{const h=await(await fetch(p+encodeURIComponent(u))).text(),all=[],re=/id="entry-([\w-]{20,})"[\s\S]*?flip-entry-title">([^<]*)</g;let m;
-  while(m=re.exec(h))all.push([m[1],m[2].replace(/&amp;/g,'&')]);
-  const au=all.filter(x=>/\.(mp3|m4a|wav|ogg|flac)$/i.test(x[1])),use=au.length?au:all;
-  if(use.length)return use.map(x=>({n:x[1].replace(/\.[^.]+$/,''),id:x[0]}))}catch(e){}}return[]}
+/* ---------- Music: random mp3 from the repo's mp3/ folder ---------- */
+let songs=[],last=-1,fails=0;const aud=$('aud'),isAudio=n=>/\.(mp3|m4a|ogg|wav)$/i.test(n),mk=n=>({n:n.replace(/\.[^.]+$/,''),u:'mp3/'+encodeURIComponent(n)});
 async function loadSongs(){
- if(LIST_URL){try{const r=await(await fetch(LIST_URL)).json();songs=r.filter(f=>/\.(mp3|m4a|wav|ogg|flac)$/i.test(f.name)).map(f=>({n:f.name.replace(/\.[^.]+$/,''),id:f.id}))}catch(e){}}
- else if(DRIVE_KEY){try{const r=await(await fetch('https://www.googleapis.com/drive/v3/files?pageSize=1000&fields=files(id,name,mimeType)&q='+encodeURIComponent("'"+DRIVE_FOLDER+"' in parents and trashed=false")+'&key='+DRIVE_KEY)).json();
-  songs=(r.files||[]).filter(f=>/^audio\//.test(f.mimeType)||/\.mp3$/i.test(f.name)).map(f=>({n:f.name.replace(/\.[^.]+$/,''),u:'https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media&key='+DRIVE_KEY}))}catch(e){}}
- else{try{const c=JSON.parse(localStorage.getItem('rwsongs')||'null');if(c&&Date.now()-c.t<216e5)songs=c.s}catch(e){}
-  if(!songs.length){songs=await scrape();if(songs.length){try{localStorage.setItem('rwsongs',JSON.stringify({t:Date.now(),s:songs}))}catch(e){}}}}
- if(!songs.length)songs=FILE_IDS.map(([n,id])=>({n,id}));
- if(!songs.length)$('np').textContent='Music: folder list unavailable (see setup)'}
-function pickSong(){if(!songs.length){$('np').textContent=$('np').textContent||'No songs loaded';return}
- let i;do{i=Math.floor(Math.random()*songs.length)}while(songs.length>1&&i===last);last=i;ci=0;aud.src=songs[i].id?URLS(songs[i].id)[0]:songs[i].u;$('np').textContent='♪ '+songs[i].n;
+ try{const r=await fetch('mp3/playlist.json');if(r.ok){const j=await r.json();songs=j.map(x=>typeof x==='string'?x:x.name).filter(isAudio).map(mk)}}catch(e){}
+ if(!songs.length){try{const c=JSON.parse(localStorage.getItem('rwsongs2')||'null');if(c&&Date.now()-c.t<216e5)songs=c.s}catch(e){}}
+ if(!songs.length&&/github\.io$/.test(location.hostname)){
+  const o=location.hostname.split('.')[0],p=location.pathname.split('/')[1],repo=p&&!/\.html?$/.test(p)?p:o+'.github.io';
+  try{const r=await(await fetch('https://api.github.com/repos/'+o+'/'+repo+'/contents/mp3')).json();songs=r.filter(f=>f.type==='file'&&isAudio(f.name)).map(f=>mk(f.name));
+   if(songs.length)localStorage.setItem('rwsongs2',JSON.stringify({t:Date.now(),s:songs}))}catch(e){}}
+ $('np').textContent=songs.length?songs.length+' songs ready':'No songs found in mp3/ folder'}
+function pickSong(){if(!songs.length)return;let i;do{i=Math.floor(Math.random()*songs.length)}while(songs.length>1&&i===last);last=i;aud.src=songs[i].u;$('np').textContent='♪ '+songs[i].n;
  aud.play().then(()=>{$('play').textContent='❚❚ Pause'}).catch(()=>{})}
 $('play').onclick=()=>{if(!aud.src)return pickSong();if(aud.paused){aud.play();$('play').textContent='❚❚ Pause'}else{aud.pause();$('play').textContent='▶ Play music'}};
 $('rnd').onclick=pickSong;
 aud.onplaying=()=>{fails=0};aud.onended=pickSong;
-aud.onerror=()=>{const s=songs[last];if(s&&s.id&&++ci<URLS(s.id).length){aud.src=URLS(s.id)[ci];aud.play().catch(()=>{});return}
- if(++fails<3){setTimeout(pickSong,800);return}
- if(s&&s.id)preview(s);else $('np').textContent='Playback failed - check folder sharing'};
-function preview(s){let f=$('pv');if(!f){f=document.createElement('iframe');f.id='pv';f.allow='autoplay';f.style.cssText='width:260px;height:70px;border:2px solid #ffd23a';document.querySelector('.bar').appendChild(f)}
- f.src='https://drive.google.com/file/d/'+s.id+'/preview';$('np').textContent='Direct play blocked: use the Drive player'};
+aud.onerror=()=>{if(++fails<4)setTimeout(pickSong,800);else $('np').textContent='Playback failed - check the file names in mp3/'};
 $('mute').onclick=()=>{aud.muted=!aud.muted;$('mute').textContent=aud.muted?'Unmute':'Mute'};
 $('vol').oninput=()=>{aud.volume=$('vol').value/100};aud.volume=.6;
 loadSongs();
