@@ -96,6 +96,7 @@ html,body{overflow-x:hidden;max-width:100vw}
 .top form button{font-size:20px;padding:0 22px;min-height:46px;font-weight:700}
 .stack img:nth-child(3){filter:brightness(1.6) drop-shadow(0 0 2px #000)}
 .you{position:absolute;left:50%;top:50%;transform:translate(-50%,20px);color:#fff;font-size:18px;font-weight:700;text-shadow:2px 2px 0 #000,-1px -1px 0 #000;white-space:nowrap;z-index:2}
+.mus{opacity:.75}.mus button{font-size:20px;padding:4px 10px}.mus input{width:84px;max-width:84px}#np{font-size:12px;max-width:140px}
 </style>
 </head>
 <body>
@@ -106,8 +107,8 @@ html,body{overflow-x:hidden;max-width:100vw}
 <linearGradient id="gDk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4bad0"/><stop offset="1" stop-color="#525a80"/></linearGradient>
 </defs></svg>
 <div class="top"><form id="sf"><input id="q" type="text" placeholder="ZIP or city" aria-label="ZIP or city"><button>Go</button></form>
-<span class="mus"><button id="play" title="Play music">♪</button><button id="rnd" title="Random song">⤮</button><button id="mute" title="Mute">🔈</button><input id="vol" type="range" min="0" max="100" value="40" aria-label="Volume"><span id="np"></span></span>
-<span class="n">NOAA <span id="upd"></span> <b>v13</b></span><audio id="aud" preload="none"></audio></div>
+<span class="mus"><button id="play" title="Play music">♪</button><button id="rnd" title="Random song">⤮</button><button id="mute" title="Mute">🔈</button><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume"><span id="np"></span></span>
+<span class="n">NOAA <span id="upd"></span> <b>v14</b></span><audio id="aud" preload="none"></audio></div>
 <div id="stage"><div class="tv">
 <header>
   <div class="ttl">Retro Weather<small id="loc">Locating…</small></div>
@@ -269,14 +270,17 @@ async function loadSongs(){let why='';
      if(l.length){songs=l.map(f=>mk(f.name,d));try{localStorage.setItem('rwsongs3',JSON.stringify({t:Date.now(),s:songs}))}catch(e){}break}why=d+'/ has no audio files'}catch(e){why='network error: '+e.message}}}}
  $('np').textContent=songs.length?songs.length+' songs ready':'No songs: '+why}
 function pickSong(){if(!songs.length)return;let i;do{i=Math.floor(Math.random()*songs.length)}while(songs.length>1&&i===last);last=i;aud.src=songs[i].u;$('np').textContent='♪ '+songs[i].n;
- aud.play().then(()=>{$('play').textContent='❚❚'}).catch(()=>{})}
+ aud.play().then(()=>{$('play').textContent='❚❚'}).catch(()=>{$('np').textContent='♪ tap anywhere to start';armGesture()})}
+let armed=0;
+function armGesture(){if(armed)return;armed=1;const E=['click','touchend','keydown'],go=e=>{if(e.target&&e.target.closest&&e.target.closest('.mus'))return;E.forEach(t=>removeEventListener(t,go,true));
+ if(aud.paused&&aud.src)aud.play().then(()=>{$('play').textContent='❚❚';if(songs[last])$('np').textContent='♪ '+songs[last].n}).catch(()=>{})};E.forEach(t=>addEventListener(t,go,true))}
 $('play').onclick=()=>{if(!aud.src)return pickSong();if(aud.paused){aud.play();$('play').textContent='❚❚'}else{aud.pause();$('play').textContent='♪'}};
 $('rnd').onclick=pickSong;
 aud.onplaying=()=>{fails=0};aud.onended=pickSong;
 aud.onerror=()=>{if(++fails<4)setTimeout(pickSong,800);else $('np').textContent='Playback failed - check the file names in mp3/'};
 $('mute').onclick=()=>{aud.muted=!aud.muted;$('mute').textContent=aud.muted?'🔇':'🔈'};
-$('vol').oninput=()=>{aud.volume=$('vol').value/100};aud.volume=.6;
-loadSongs();
+$('vol').oninput=()=>{aud.volume=$('vol').value/100};aud.volume=.5;
+loadSongs().then(pickSong);
 </script>
 </body>
 </html>
