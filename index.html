@@ -97,6 +97,32 @@ html,body{overflow-x:hidden;max-width:100vw}
 .stack img:nth-child(3){filter:brightness(1.6) drop-shadow(0 0 2px #000)}
 .you{position:absolute;left:50%;top:50%;transform:translate(-50%,20px);color:#fff;font-size:18px;font-weight:700;text-shadow:2px 2px 0 #000,-1px -1px 0 #000;white-space:nowrap;z-index:2}
 .mus{opacity:.75}.mus button{font-size:20px;padding:4px 10px}.mus input{width:84px;max-width:84px}#np{font-size:12px;max-width:140px}
+.mus{flex:1 1 100%;flex-wrap:wrap;gap:10px;opacity:1}
+.mus button{width:56px;height:50px;font-size:30px;line-height:1;padding:0;background:#ffd23a;color:#0a1560;box-shadow:2px 2px 0 #000}
+.mus input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;flex:1 1 90px;width:auto;max-width:none;height:40px;margin:0}
+.mus input[type=range]::-webkit-slider-runnable-track{height:10px;background:#5a8cff;border-radius:5px}
+.mus input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:32px;height:32px;margin-top:-11px;border-radius:50%;background:#ffd23a;border:3px solid #000}
+.mus input[type=range]::-moz-range-track{height:10px;background:#5a8cff;border-radius:5px}
+.mus input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:#ffd23a;border:3px solid #000}
+#np{flex:1 1 100%;max-width:none;font-size:15px;opacity:.9}
+.mus{gap:8px}
+.mus button{width:42px;height:38px;font-size:22px}
+.mus input[type=range]{height:30px;flex:1 1 70px}
+.mus input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px}
+.mus input[type=range]::-webkit-slider-thumb{width:24px;height:24px;margin-top:-10px;border-width:2px}
+.mus input[type=range]::-moz-range-track{height:8px;border-radius:4px}
+.mus input[type=range]::-moz-range-thumb{width:22px;height:22px;border-width:2px}
+#np{font-size:11px}
+/* 90s web look: Windows 95 style bevels */
+.top button,button#nx{background:#c0c0c0;color:#000;border:2px solid;border-color:#fff #404040 #404040 #fff;box-shadow:inset -1px -1px #808080,inset 1px 1px #dfdfdf;font-family:"MS Sans Serif",Tahoma,Verdana,Arial,sans-serif;font-weight:700;text-shadow:none;border-radius:0;filter:none;cursor:pointer}
+.top button:active,button#nx:active{background:#b4b4b4;border-color:#404040 #fff #fff #404040;box-shadow:inset 1px 1px #808080,inset -1px -1px #dfdfdf}
+button#nx{border-width:3px;letter-spacing:.15em}
+button#nx svg{fill:#000080;filter:none}
+.top #q{background:#fff;color:#000;border:2px solid;border-color:#808080 #fff #fff #808080;box-shadow:inset 1px 1px #404040;font-family:Tahoma,Verdana,Arial,sans-serif}
+.top #q::placeholder{color:#707070}
+.top #q{font-size:17px;padding:8px 10px;min-height:34px}
+.top form button{font-size:15px;padding:0 16px;min-height:34px}
+button#nx{height:11.25vh;min-height:42px;font-size:min(5.25vw,25.5px);gap:3.75vw}
 </style>
 </head>
 <body>
@@ -108,7 +134,7 @@ html,body{overflow-x:hidden;max-width:100vw}
 </defs></svg>
 <div class="top"><form id="sf"><input id="q" type="text" placeholder="ZIP or city" aria-label="ZIP or city"><button>Go</button></form>
 <span class="mus"><button id="play" title="Play music">♪</button><button id="rnd" title="Random song">⤮</button><button id="mute" title="Mute">🔈</button><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume"><span id="np"></span></span>
-<span class="n">NOAA <span id="upd"></span> <b>v14</b></span><audio id="aud" preload="none"></audio></div>
+<span class="n">NOAA <span id="upd"></span> <b>v18</b></span><audio id="aud" preload="none"></audio></div>
 <div id="stage"><div class="tv">
 <header>
   <div class="ttl">Retro Weather<small id="loc">Locating…</small></div>
@@ -270,17 +296,17 @@ async function loadSongs(){let why='';
      if(l.length){songs=l.map(f=>mk(f.name,d));try{localStorage.setItem('rwsongs3',JSON.stringify({t:Date.now(),s:songs}))}catch(e){}break}why=d+'/ has no audio files'}catch(e){why='network error: '+e.message}}}}
  $('np').textContent=songs.length?songs.length+' songs ready':'No songs: '+why}
 function pickSong(){if(!songs.length)return;let i;do{i=Math.floor(Math.random()*songs.length)}while(songs.length>1&&i===last);last=i;aud.src=songs[i].u;$('np').textContent='♪ '+songs[i].n;
- aud.play().then(()=>{$('play').textContent='❚❚'}).catch(()=>{$('np').textContent='♪ tap anywhere to start';armGesture()})}
-let armed=0;
-function armGesture(){if(armed)return;armed=1;const E=['click','touchend','keydown'],go=e=>{if(e.target&&e.target.closest&&e.target.closest('.mus'))return;E.forEach(t=>removeEventListener(t,go,true));
- if(aud.paused&&aud.src)aud.play().then(()=>{$('play').textContent='❚❚';if(songs[last])$('np').textContent='♪ '+songs[last].n}).catch(()=>{})};E.forEach(t=>addEventListener(t,go,true))}
+ aud.play().then(()=>{$('play').textContent='❚❚'}).catch(()=>{$('np').textContent='♪ tap anywhere to start'})}
+function firstTap(LP){const E=['pointerup','click','touchend','keydown'],go=e=>{E.forEach(t=>removeEventListener(t,go,true));if(e.target&&e.target.closest&&e.target.closest('.mus'))return;
+ const run=()=>{if(!songs.length)return;if(!aud.src)pickSong();else if(aud.paused)aud.play().then(()=>{$('play').textContent='❚❚';if(songs[last])$('np').textContent='♪ '+songs[last].n}).catch(()=>{})};songs.length?run():LP.then(run)};
+ E.forEach(t=>addEventListener(t,go,true))}
 $('play').onclick=()=>{if(!aud.src)return pickSong();if(aud.paused){aud.play();$('play').textContent='❚❚'}else{aud.pause();$('play').textContent='♪'}};
 $('rnd').onclick=pickSong;
 aud.onplaying=()=>{fails=0};aud.onended=pickSong;
-aud.onerror=()=>{if(++fails<4)setTimeout(pickSong,800);else $('np').textContent='Playback failed - check the file names in mp3/'};
+aud.onerror=()=>{if(++fails<4)setTimeout(pickSong,800);else $('np').textContent='Cannot play '+((songs[last]||{}).n||'song')+' (error '+(aud.error?aud.error.code:'?')+')'};
 $('mute').onclick=()=>{aud.muted=!aud.muted;$('mute').textContent=aud.muted?'🔇':'🔈'};
 $('vol').oninput=()=>{aud.volume=$('vol').value/100};aud.volume=.5;
-loadSongs().then(pickSong);
+const LP=loadSongs();LP.then(pickSong);firstTap(LP);
 </script>
 </body>
 </html>
