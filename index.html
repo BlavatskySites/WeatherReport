@@ -49,7 +49,7 @@ h2{flex:none;font-size:7cqmin;color:var(--gold);text-shadow:3px 3px 0 #000}
 .hr.c{grid-template-columns:1.6fr .6fr .7fr 1.4fr}
 .hr>span:nth-child(-n+4){white-space:nowrap}
 /* portrait: stack things instead of cramming */
-@container (max-aspect-ratio:1/1){#ext{grid-template-columns:repeat(2,1fr)}#nb .grid{grid-template-columns:1fr}#nb .card{flex-direction:row;justify-content:space-around}}
+@container (max-aspect-ratio:1/1){#ext{grid-template-columns:repeat(2,1fr)}#nb .grid{grid-template-columns:1fr}}
 /* alerts */
 .screen.alert h2{color:#fff;background:#c00000;padding:.6cqmin 1.6cqmin;animation:blink 1s steps(2) infinite}
 #al{overflow:hidden;font-size:4.2cqmin;line-height:1.4}
@@ -92,6 +92,25 @@ button#nx svg{height:55%;width:auto;fill:#000080}
 .hr.c>span:nth-child(4){white-space:normal}
 .fact{flex:1;display:flex;align-items:center;font-size:6cqmin;line-height:1.5;text-shadow:3px 3px 0 #000}
 .trivia h2{text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:.35em}
+.i svg,.ni svg,.xi svg{display:block;width:1em;height:1em;filter:drop-shadow(2px 2px 0 #000);shape-rendering:geometricPrecision}
+.i,.ni{line-height:1}
+.card{overflow:hidden}
+.hr>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.nc{display:grid;min-width:0;min-height:0;overflow:hidden;align-items:center;column-gap:2cqmin;row-gap:.6cqmin;padding:1.4cqmin 2cqmin;background:rgba(5,10,60,.6);border:2px solid var(--sky);text-shadow:2px 2px 0 #000;grid-template-columns:auto 1fr auto;grid-template-areas:"ni nm nt" "ni nw nt" "nd nd nd"}
+.nc>b{grid-area:nm;color:var(--gold);font-size:4.6cqmin;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nt{grid-area:nt;font-size:9cqmin;line-height:1}
+.ni{grid-area:ni;font-size:11cqmin}
+.nw{grid-area:nw;font-size:3.8cqmin;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nd{grid-area:nd;display:grid;grid-template-columns:1fr 1fr;gap:.4cqmin 2cqmin;font-size:3.5cqmin;line-height:1.3}
+.nd span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nb .grid{grid-template-columns:1fr}
+@container (min-aspect-ratio:1/1){.nc{grid-template-columns:auto 1.3fr auto 1.7fr;grid-template-areas:"ni nm nt nd" "ni nw nt nd"}.nd{align-self:center}}
+.xc{display:grid;min-width:0;min-height:0;overflow:hidden;grid-template-columns:auto 1fr;grid-template-areas:"xi xn" "xi xt" "xf xf";align-items:center;column-gap:2cqmin;row-gap:.8cqmin;padding:1.4cqmin 2cqmin;background:rgba(5,10,60,.6);border:2px solid var(--sky);text-shadow:2px 2px 0 #000}
+.xc>b{grid-area:xn;color:var(--gold);font-size:4.2cqmin;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xt{grid-area:xt;font-size:8cqmin;line-height:1}
+.xi{grid-area:xi;font-size:12cqmin;line-height:1}
+.xf{grid-area:xf;font-size:3.4cqmin;line-height:1.25;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fact{overflow:hidden;line-height:1.3;font-size:6cqmin}
 </style>
 </head>
 <body>
@@ -103,7 +122,7 @@ button#nx svg{height:55%;width:auto;fill:#000080}
 </defs></svg>
 <div class="top"><form id="sf"><input id="q" type="text" placeholder="ZIP or city" aria-label="ZIP or city"><button>Go</button></form>
 <span class="mus"><button id="play" title="Play music">♪</button><button id="rnd" title="Random song">⤮</button><button id="mute" title="Mute">🔈</button><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume"><span id="np"></span></span>
-<span class="n">NOAA <span id="upd"></span> <b>v23</b></span><audio id="aud" preload="none"></audio></div>
+<span class="n">NOAA <span id="upd"></span> <b>v25</b></span><audio id="aud" preload="none"></audio></div>
 <div id="stage"><div class="tv">
 <header>
   <div class="ttl">Retro Weather<small id="loc">Locating…</small></div>
@@ -138,8 +157,6 @@ const lab=B=>['https://services.arcgisonline.com/arcgis/rest/services/Canvas/Wor
 const coast=B=>[gibs('Coastlines_15m',B,0)];
 const MAPS=[
  {t:'Satellite',h:6,a:(B,S)=>[gibs(S+'_ABI_GeoColor',B,1),gibs('GOES-East_ABI_GeoColor',B,1)],b:coast,c:lab},
- {t:'Moisture (Water Vapor)',h:6,a:(B,S)=>[gibs(S+'_ABI_Band9_Mid_Level_Water_Vapor',B,1),gibs(S+'_ABI_Air_Mass',B,1),gibs('GOES-East_ABI_Air_Mass',B,1)],b:coast,c:lab},
- {t:'Infrared (Cloud Tops)',h:6,a:(B,S)=>[gibs(S+'_ABI_Band13_Clean_Infrared',B,1),gibs(S+'_ABI_GeoColor',B,1)],b:coast,c:lab},
  {t:'Regional Radar (Rain)',h:9,a:B=>[dark(B)],b:radar,c:lab},
  {t:'Local Radar (Rain)',h:3,a:B=>[dark(B)],b:radar,c:lab}];
 let LOC=null,RADAR=null,CW=800;
@@ -151,7 +168,7 @@ const WM=c=>c===0?'Clear':c<3?'Partly cloudy':c===3?'Overcast':c<50?'Fog':c<60?'
 async function cities(l,id){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code&temperature_unit=fahrenheit&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
  $(id).innerHTML=l.map((c,i)=>{const w=WM(a[i].current.weather_code);return '<div class="hr c"><span>'+c[0]+'</span><span class="i">'+icon(w)+'</span><span>'+Math.round(a[i].current.temperature_2m)+'°</span><span>'+w+'</span></div>'}).join('')}catch(e){$(id).textContent='City data unavailable.'}}
 async function nearby(l){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=1&timezone=auto&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
- $('nb').innerHTML='<div class="grid">'+l.map((c,i)=>{const u=a[i].current,d=a[i].daily,w=WM(u.weather_code);return '<div class="card"><div class="cl"><b>'+c[0]+'</b><div class="i">'+icon(w)+'</div><div class="t">'+Math.round(u.temperature_2m)+'°</div><div>'+w+'</div></div><div class="d">H '+Math.round(d.temperature_2m_max[0])+'° / L '+Math.round(d.temperature_2m_min[0])+'°<br>Wind '+Math.round(u.wind_speed_10m)+' mph<br>Humidity '+u.relative_humidity_2m+'%<br>Rain '+(d.precipitation_probability_max[0]??0)+'%</div>'}).join('')+'</div>'}catch(e){$('nb').textContent='City data unavailable.'}}
+ $('nb').innerHTML='<div class="grid">'+l.map((c,i)=>{const u=a[i].current,d=a[i].daily,w=WM(u.weather_code);return '<div class="nc"><b>'+c[0]+'</b><div class="nt">'+Math.round(u.temperature_2m)+'°</div><div class="ni">'+icon(w)+'</div><div class="nw">'+w+'</div><div class="nd"><span>H'+Math.round(d.temperature_2m_max[0])+'° L'+Math.round(d.temperature_2m_min[0])+'°</span><span>Rain '+(d.precipitation_probability_max[0]??0)+'%</span><span>Wind '+Math.round(u.wind_speed_10m)+' mph</span><span>Hum '+u.relative_humidity_2m+'%</span></div></div>'}).join('')+'</div>'}catch(e){$('nb').textContent='City data unavailable.'}}
 const nearest=(a,b)=>US.map(c=>[c,(c[1]-a)**2+((c[2]-b)*Math.cos(a*Math.PI/180))**2]).sort((x,y)=>x[1]-y[1]).slice(0,3).map(x=>x[0]);
 function snaps(){const L=LOC||[39.5,-98.5],S=L[1]<-104?'GOES-West':'GOES-East',t='&t='+Math.floor(Date.now()/9e5);
  document.querySelectorAll('.mapw').forEach(w=>{const m=MAPS[w.dataset.i],B=bb(L,m.h),im=(CW=Math.round(800/Math.cos(L[0]*Math.PI/180)),w.querySelectorAll('img')),cap=w.querySelector('.cap');
@@ -161,13 +178,13 @@ snaps();setInterval(snaps,15*60*1000);
 setTimeout(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},0);setInterval(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},30*60*1000);
 const FACTS=['Lightning can heat the air around it to roughly five times the temperature of the surface of the Sun.','The hottest air temperature ever officially recorded is 134°F (56.7°C), at Death Valley, California, on July 10, 1913.','The coldest temperature ever recorded on Earth is -128.6°F (-89.2°C), at Vostok Station, Antarctica, in 1983.','The heaviest hailstone ever recorded in the U.S. fell in Vivian, South Dakota in 2010. It was 8 inches wide and weighed almost 2 pounds.','Count the seconds between a lightning flash and its thunder, then divide by 5. That is roughly how many miles away the strike was.','Rainbows are really full circles. From the ground, the horizon hides the bottom part so you only see an arc.','Petrichor is the name for the earthy smell that rises when rain hits dry ground.','Fog is simply a cloud that touches the ground.','A typical fluffy cumulus cloud can weigh more than a million pounds, held up by tiny droplets drifting in rising air.','Snow crystals have six sides because of the way water molecules lock together as they freeze.','The Atlantic hurricane season officially runs from June 1 to November 30.','Tornadoes in the U.S. are rated from EF0 to EF5 on the Enhanced Fujita scale, based on the damage they cause.','The jet stream is a river of fast air high above the ground that can top 200 miles per hour.','Mawsynram, in India, is one of the wettest places on Earth, with roughly 400 inches of rain in a typical year.','The strongest wind gust ever measured away from a tornado was 253 mph on Barrow Island, Australia, during Cyclone Olivia in 1996.','Raindrops fall at about 5 to 20 miles per hour, depending on how big they are.'];
 (async()=>{try{const r=await(await fetch('https://factfacts.com/api.php?count=10&category=weather')).json(),a=(r.facts||[r.fact]).map(f=>f&&f.text).filter(t=>t&&/weather|rain|storm|thunder|lightning|tornado|hurricane|snow|wind|cloud|temperature|climate|fog|hail|rainbow|flood|forecast/i.test(t));FACTS.push(...a)}catch(e){}})();
-function newFact(){const e=$('fact');if(e)e.textContent=FACTS[Math.floor(Math.random()*FACTS.length)]}
+function newFact(){const e=$('fact');if(!e)return;e.textContent=FACTS[Math.floor(Math.random()*FACTS.length)];let lo=14,hi=90;for(let i=0;i<9;i++){const m=(lo+hi)/2;e.style.fontSize=m+'px';if(e.scrollHeight<=e.clientHeight+1&&e.scrollWidth<=e.clientWidth+1)lo=m;else hi=m}e.style.fontSize=lo+'px'}
 const scr=()=>[...document.querySelectorAll('.screen')];
 function show(i){const a=scr();a.forEach(e=>e.classList.remove('on'));cur=(i+a.length)%a.length;a[cur].classList.add('on');if(a[cur].querySelector('#fact'))newFact()}
 function fitScr(){}
 setInterval(()=>fitScr(),2000);
 function next(){const a=scr();let i=cur;do{i=(i+1)%a.length}while(a[i].classList.contains('skip'));show(i)}
-let tmr;const arm=()=>{clearInterval(tmr);tmr=setInterval(next,10000)};cur=scr().indexOf($('s0'));arm();
+let tmr;const arm=()=>{clearInterval(tmr);tmr=setInterval(next,20000)};cur=scr().indexOf($('s0'));arm();
 $('nx').onclick=()=>{next();arm()};
 function emergency(al){const e=$('sAL');e.classList.toggle('skip',!al.length);
  $('al').innerHTML=al.slice(0,3).map(a=>{const p=a.properties;return '<p style="margin:0 0 8px"><b>'+p.event.toUpperCase()+'</b> - '+(p.areaDesc||'').slice(0,70)+'<br>'+(p.headline||'').slice(0,120)+'<br>'+(p.description||'').replace(/\s+/g,' ').slice(0,200)+'…</p>'}).join('');
@@ -203,7 +220,7 @@ async function load(lat,lon){nearby(nearest(lat,lon));
   const [fc,hr,st]=await Promise.all([jget(pt.forecast),jget(pt.forecastHourly),jget(pt.observationStations)]);
   const P=fc.properties.periods;
   // Extended forecast
-  $('ext').innerHTML=P.slice(0,6).map(p=>`<div class="card"><b>${p.name}</b><div class="i">${icon(p.shortForecast,p.isDaytime)}</div><div class="t">${p.temperature}°</div>${p.shortForecast}</div>`).join('');
+  $('ext').innerHTML=P.slice(0,6).map(p=>`<div class="xc"><b>${p.name}</b><div class="xt">${p.temperature}°</div><div class="xi">${icon(p.shortForecast,p.isDaytime)}</div><div class="xf">${p.shortForecast}</div></div>`).join('');
   // Hourly
   const hp=hr.properties.periods.slice(0,18),
    H=a=>'<div class="hr h"><span>Time</span><span></span><span>Temp</span><span>Rain</span><span>Wind</span></div>'+a.map(p=>`<div class="hr"><span>${new Date(p.startTime).toLocaleTimeString([],{hour:'numeric'})}</span><span class="i">${icon(p.shortForecast,p.isDaytime)}</span><span>${p.temperature}°</span><span>${v(p.probabilityOfPrecipitation)??0}%</span><span>${p.windDirection} ${p.windSpeed}</span></div>`).join('');
