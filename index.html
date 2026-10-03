@@ -122,7 +122,7 @@ button#nx svg{height:55%;width:auto;fill:#000080}
 </defs></svg>
 <div class="top"><form id="sf"><input id="q" type="text" placeholder="ZIP or city" aria-label="ZIP or city"><button>Go</button></form>
 <span class="mus"><button id="play" title="Play music">♪</button><button id="rnd" title="Random song">⤮</button><button id="mute" title="Mute">🔈</button><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume"><span id="np"></span></span>
-<span class="n">NOAA <span id="upd"></span> <b>v25</b></span><audio id="aud" preload="none"></audio></div>
+<span class="n">NOAA <span id="upd"></span> <b>v26</b></span><audio id="aud" preload="none"></audio></div>
 <div id="stage"><div class="tv">
 <header>
   <div class="ttl">Retro Weather<small id="loc">Locating…</small></div>
@@ -163,12 +163,23 @@ let LOC=null,RADAR=null,CW=800;
 {const e=document.createElement('section');e.className='screen alert skip';e.id='sAL';e.innerHTML='<h2>⚠ EMERGENCY ALERT</h2><div id="al" class="msg"></div>';document.querySelector('main').prepend(e)}
 const add=(t,b)=>{const e=document.createElement('section');e.className='screen';e.id='s'+document.querySelectorAll('.screen').length;e.innerHTML='<h2>'+t+'</h2>'+b;document.querySelector('main').appendChild(e)};
 MAPS.forEach((m,i)=>add(m.t,'<div class="mapw" data-i="'+i+'"><div class="stack"><img alt=""><img alt=""><img alt=""><div class="you"></div></div><div class="cap"></div></div>'));
-add('Nearby Cities','<div id="nb"></div>');add('World Cities (1/2)','<div id="wc1"></div>');add('World Cities (2/2)','<div id="wc2"></div>');add('Did you know?','<div id="fact" class="fact"></div>');document.querySelector('main').lastElementChild.classList.add('trivia');
+add('Nearby (30 mi)','<div id="nb"></div>');add('World Cities (1/2)','<div id="wc1"></div>');add('World Cities (2/2)','<div id="wc2"></div>');add('Did you know?','<div id="fact" class="fact"></div>');document.querySelector('main').lastElementChild.classList.add('trivia');add('On this Day','<div id="otd" class="fact"></div>');document.querySelector('main').lastElementChild.classList.add('trivia');
 const WM=c=>c===0?'Clear':c<3?'Partly cloudy':c===3?'Overcast':c<50?'Fog':c<60?'Drizzle':c<70?'Rain':c<80?'Snow':c<90?'Showers':'Thunderstorm';
 async function cities(l,id){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code&temperature_unit=fahrenheit&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
  $(id).innerHTML=l.map((c,i)=>{const w=WM(a[i].current.weather_code);return '<div class="hr c"><span>'+c[0]+'</span><span class="i">'+icon(w)+'</span><span>'+Math.round(a[i].current.temperature_2m)+'°</span><span>'+w+'</span></div>'}).join('')}catch(e){$(id).textContent='City data unavailable.'}}
+const hav=(a,b,c,d)=>{const p=Math.PI/180,x=Math.sin((c-a)*p/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin((d-b)*p/2)**2;return 2*3958.8*Math.asin(Math.sqrt(x))};
+async function nearbyFor(lat,lon,me){let list=null;const key='rwt_'+lat.toFixed(1)+'_'+lon.toFixed(1);
+ try{const c=JSON.parse(localStorage.getItem(key)||'null');if(c&&Date.now()-c.t<864e5)list=c.l}catch(e){}
+ if(!list){try{const q='[out:json][timeout:10];node(around:48280,'+lat+','+lon+')[place~"^(city|town|village)$"][name];out 80;',
+   r=await(await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q))).json(),seen={},
+   l=(r.elements||[]).map(e=>({n:e.tags.name,p:e.tags.place,la:e.lat,lo:e.lon,d:hav(lat,lon,e.lat,e.lon)})).filter(e=>e.d<=30&&e.n!==me&&!seen[e.n]&&(seen[e.n]=1)),
+   big=l.filter(e=>e.p!=='village').sort((a,b)=>a.d-b.d),sm=l.filter(e=>e.p==='village').sort((a,b)=>a.d-b.d);
+   list=[...big,...sm].slice(0,3).map(e=>[e.n,e.la,e.lo,Math.max(1,Math.round(e.d))]);
+   if(list.length)try{localStorage.setItem(key,JSON.stringify({t:Date.now(),l:list}))}catch(e){}}catch(e){}}
+ if(!list||list.length<3){const f=nearest(lat,lon).map(c=>[c[0],c[1],c[2],Math.round(hav(lat,lon,c[1],c[2]))]).filter(c=>c[0]!==me);list=[...(list||[]),...f.filter(c=>!(list||[]).some(x=>x[0]===c[0]))].slice(0,3)}
+ nearby(list)}
 async function nearby(l){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=1&timezone=auto&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
- $('nb').innerHTML='<div class="grid">'+l.map((c,i)=>{const u=a[i].current,d=a[i].daily,w=WM(u.weather_code);return '<div class="nc"><b>'+c[0]+'</b><div class="nt">'+Math.round(u.temperature_2m)+'°</div><div class="ni">'+icon(w)+'</div><div class="nw">'+w+'</div><div class="nd"><span>H'+Math.round(d.temperature_2m_max[0])+'° L'+Math.round(d.temperature_2m_min[0])+'°</span><span>Rain '+(d.precipitation_probability_max[0]??0)+'%</span><span>Wind '+Math.round(u.wind_speed_10m)+' mph</span><span>Hum '+u.relative_humidity_2m+'%</span></div></div>'}).join('')+'</div>'}catch(e){$('nb').textContent='City data unavailable.'}}
+ $('nb').innerHTML='<div class="grid">'+l.map((c,i)=>{const u=a[i].current,d=a[i].daily,w=WM(u.weather_code);return '<div class="nc"><b>'+c[0]+'</b><div class="nt">'+Math.round(u.temperature_2m)+'°</div><div class="ni">'+icon(w)+'</div><div class="nw">'+w+(c[3]!=null?' · '+c[3]+' mi':'')+'</div><div class="nd"><span>H'+Math.round(d.temperature_2m_max[0])+'° L'+Math.round(d.temperature_2m_min[0])+'°</span><span>Rain '+(d.precipitation_probability_max[0]??0)+'%</span><span>Wind '+Math.round(u.wind_speed_10m)+' mph</span><span>Hum '+u.relative_humidity_2m+'%</span></div></div>'}).join('')+'</div>'}catch(e){$('nb').textContent='City data unavailable.'}}
 const nearest=(a,b)=>US.map(c=>[c,(c[1]-a)**2+((c[2]-b)*Math.cos(a*Math.PI/180))**2]).sort((x,y)=>x[1]-y[1]).slice(0,3).map(x=>x[0]);
 function snaps(){const L=LOC||[39.5,-98.5],S=L[1]<-104?'GOES-West':'GOES-East',t='&t='+Math.floor(Date.now()/9e5);
  document.querySelectorAll('.mapw').forEach(w=>{const m=MAPS[w.dataset.i],B=bb(L,m.h),im=(CW=Math.round(800/Math.cos(L[0]*Math.PI/180)),w.querySelectorAll('img')),cap=w.querySelector('.cap');
@@ -178,9 +189,16 @@ snaps();setInterval(snaps,15*60*1000);
 setTimeout(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},0);setInterval(()=>{cities(WORLD.slice(0,5),'wc1');cities(WORLD.slice(5),'wc2')},30*60*1000);
 const FACTS=['Lightning can heat the air around it to roughly five times the temperature of the surface of the Sun.','The hottest air temperature ever officially recorded is 134°F (56.7°C), at Death Valley, California, on July 10, 1913.','The coldest temperature ever recorded on Earth is -128.6°F (-89.2°C), at Vostok Station, Antarctica, in 1983.','The heaviest hailstone ever recorded in the U.S. fell in Vivian, South Dakota in 2010. It was 8 inches wide and weighed almost 2 pounds.','Count the seconds between a lightning flash and its thunder, then divide by 5. That is roughly how many miles away the strike was.','Rainbows are really full circles. From the ground, the horizon hides the bottom part so you only see an arc.','Petrichor is the name for the earthy smell that rises when rain hits dry ground.','Fog is simply a cloud that touches the ground.','A typical fluffy cumulus cloud can weigh more than a million pounds, held up by tiny droplets drifting in rising air.','Snow crystals have six sides because of the way water molecules lock together as they freeze.','The Atlantic hurricane season officially runs from June 1 to November 30.','Tornadoes in the U.S. are rated from EF0 to EF5 on the Enhanced Fujita scale, based on the damage they cause.','The jet stream is a river of fast air high above the ground that can top 200 miles per hour.','Mawsynram, in India, is one of the wettest places on Earth, with roughly 400 inches of rain in a typical year.','The strongest wind gust ever measured away from a tornado was 253 mph on Barrow Island, Australia, during Cyclone Olivia in 1996.','Raindrops fall at about 5 to 20 miles per hour, depending on how big they are.'];
 (async()=>{try{const r=await(await fetch('https://factfacts.com/api.php?count=10&category=weather')).json(),a=(r.facts||[r.fact]).map(f=>f&&f.text).filter(t=>t&&/weather|rain|storm|thunder|lightning|tornado|hurricane|snow|wind|cloud|temperature|climate|fog|hail|rainbow|flood|forecast/i.test(t));FACTS.push(...a)}catch(e){}})();
-function newFact(){const e=$('fact');if(!e)return;e.textContent=FACTS[Math.floor(Math.random()*FACTS.length)];let lo=14,hi=90;for(let i=0;i<9;i++){const m=(lo+hi)/2;e.style.fontSize=m+'px';if(e.scrollHeight<=e.clientHeight+1&&e.scrollWidth<=e.clientWidth+1)lo=m;else hi=m}e.style.fontSize=lo+'px'}
+function fitText(e,t){e.textContent=t;let lo=12,hi=30;for(let i=0;i<9;i++){const m=(lo+hi)/2;e.style.fontSize=m+'px';if(e.scrollHeight<=e.clientHeight+1&&e.scrollWidth<=e.clientWidth+1)lo=m;else hi=m}e.style.fontSize=lo+'px'}
+function newFact(){const e=$('fact');if(e)fitText(e,FACTS[Math.floor(Math.random()*FACTS.length)])}
+const OTD=[];
+(async()=>{const d=new Date(),mm=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'),b='https://en.wikipedia.org/api/rest_v1/feed/onthisday/';
+ const [a,c]=await Promise.allSettled([fetch(b+'selected/'+mm+'/'+dd).then(r=>r.json()),fetch(b+'births/'+mm+'/'+dd).then(r=>r.json())]);
+ if(a.status==='fulfilled')(a.value.selected||[]).forEach(x=>x.text&&OTD.push('In '+x.year+': '+x.text));
+ if(c.status==='fulfilled')(c.value.births||[]).filter(x=>x.text&&x.pages&&x.pages.length).forEach(x=>OTD.push('Born in '+x.year+': '+x.text))})();
+function newOtd(){const e=$('otd');if(e)fitText(e,OTD.length?OTD[Math.floor(Math.random()*OTD.length)]:'On this day facts are unavailable right now.')}
 const scr=()=>[...document.querySelectorAll('.screen')];
-function show(i){const a=scr();a.forEach(e=>e.classList.remove('on'));cur=(i+a.length)%a.length;a[cur].classList.add('on');if(a[cur].querySelector('#fact'))newFact()}
+function show(i){const a=scr();a.forEach(e=>e.classList.remove('on'));cur=(i+a.length)%a.length;a[cur].classList.add('on');if(a[cur].querySelector('#fact'))newFact();if(a[cur].querySelector('#otd'))newOtd()}
 function fitScr(){}
 setInterval(()=>fitScr(),2000);
 function next(){const a=scr();let i=cur;do{i=(i+1)%a.length}while(a[i].classList.contains('skip'));show(i)}
@@ -213,10 +231,10 @@ const dir=d=>d==null?'':['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW
 const jget=async u=>{const r=await fetch(u,{headers:{Accept:'application/geo+json'}});if(!r.ok)throw new Error(r.status);return r.json()};
 const v=x=>x&&x.value!=null?x.value:null;
 
-async function load(lat,lon){nearby(nearest(lat,lon));
+async function load(lat,lon){
  try{
   const pt=(await jget(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`)).properties;
-  const rl=pt.relativeLocation.properties;if(pt.radarStation&&RADAR!==pt.radarStation){RADAR=pt.radarStation;snaps()}$('loc').textContent=`${rl.city}, ${rl.state}`;document.querySelectorAll('.you').forEach(e=>e.textContent='▲ '+$('loc').textContent);
+  const rl=pt.relativeLocation.properties;nearbyFor(lat,lon,rl.city);if(pt.radarStation&&RADAR!==pt.radarStation){RADAR=pt.radarStation;snaps()}$('loc').textContent=`${rl.city}, ${rl.state}`;document.querySelectorAll('.you').forEach(e=>e.textContent='▲ '+$('loc').textContent);
   const [fc,hr,st]=await Promise.all([jget(pt.forecast),jget(pt.forecastHourly),jget(pt.observationStations)]);
   const P=fc.properties.periods;
   // Extended forecast
