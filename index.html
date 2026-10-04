@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"></script>
 <title>Retro Weather</title>
 <style>
 :root{--navy:#0a1560;--royal:#1f3fc4;--sky:#5a8cff;--gold:#ffd23a;--white:#f4f6ff;--plum:#3b1a78}
@@ -111,6 +112,10 @@ button#nx svg{height:55%;width:auto;fill:#000080}
 .xi{grid-area:xi;font-size:12cqmin;line-height:1}
 .xf{grid-area:xf;font-size:3.4cqmin;line-height:1.25;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .fact{overflow:hidden;line-height:1.3;font-size:6cqmin}
+.fact{justify-content:center;text-align:center}
+.cam{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+.cam img,.cam video{display:none;flex:1;min-height:0;width:100%;object-fit:cover;border:4px solid var(--sky);background:#000;filter:contrast(1.1) saturate(1.2)}
+.cam .live{position:absolute;top:2cqmin;left:2cqmin;z-index:3;background:#c00000;color:#fff;font-size:3.6cqmin;padding:.5cqmin 1.6cqmin;animation:blink 1.4s steps(2) infinite}
 </style>
 </head>
 <body>
@@ -122,7 +127,7 @@ button#nx svg{height:55%;width:auto;fill:#000080}
 </defs></svg>
 <div class="top"><form id="sf"><input id="q" type="text" placeholder="ZIP or city" aria-label="ZIP or city"><button>Go</button></form>
 <span class="mus"><button id="play" title="Play music">♪</button><button id="rnd" title="Random song">⤮</button><button id="mute" title="Mute">🔈</button><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume"><span id="np"></span></span>
-<span class="n">NOAA <span id="upd"></span> <b>v26</b></span><audio id="aud" preload="none"></audio></div>
+<span class="n">NOAA <span id="upd"></span> <b>v27</b></span><audio id="aud" preload="none"></audio></div>
 <div id="stage"><div class="tv">
 <header>
   <div class="ttl">Retro Weather<small id="loc">Locating…</small></div>
@@ -163,11 +168,34 @@ let LOC=null,RADAR=null,CW=800;
 {const e=document.createElement('section');e.className='screen alert skip';e.id='sAL';e.innerHTML='<h2>⚠ EMERGENCY ALERT</h2><div id="al" class="msg"></div>';document.querySelector('main').prepend(e)}
 const add=(t,b)=>{const e=document.createElement('section');e.className='screen';e.id='s'+document.querySelectorAll('.screen').length;e.innerHTML='<h2>'+t+'</h2>'+b;document.querySelector('main').appendChild(e)};
 MAPS.forEach((m,i)=>add(m.t,'<div class="mapw" data-i="'+i+'"><div class="stack"><img alt=""><img alt=""><img alt=""><div class="you"></div></div><div class="cap"></div></div>'));
-add('Nearby (30 mi)','<div id="nb"></div>');add('World Cities (1/2)','<div id="wc1"></div>');add('World Cities (2/2)','<div id="wc2"></div>');add('Did you know?','<div id="fact" class="fact"></div>');document.querySelector('main').lastElementChild.classList.add('trivia');add('On this Day','<div id="otd" class="fact"></div>');document.querySelector('main').lastElementChild.classList.add('trivia');
+add('LIVE LOOK','<div class="cam"><div class="live">● LIVE</div><img id="camimg" alt=""><video id="camvid" muted playsinline autoplay></video><div class="cap" id="camcap">Finding the closest camera…</div></div>');
+add('Did you know?','<div id="fact" class="fact"></div>');document.querySelector('main').lastElementChild.classList.add('trivia');
+add('Nearby (30 mi)','<div id="nb"></div>');add('World Cities (1/2)','<div id="wc1"></div>');add('World Cities (2/2)','<div id="wc2"></div>');
+add('On this Day','<div id="otd" class="fact"></div>');document.querySelector('main').lastElementChild.classList.add('trivia');
 const WM=c=>c===0?'Clear':c<3?'Partly cloudy':c===3?'Overcast':c<50?'Fog':c<60?'Drizzle':c<70?'Rain':c<80?'Snow':c<90?'Showers':'Thunderstorm';
 async function cities(l,id){try{const r=await(await fetch('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code&temperature_unit=fahrenheit&latitude='+l.map(c=>c[1])+'&longitude='+l.map(c=>c[2]))).json(),a=Array.isArray(r)?r:[r];
  $(id).innerHTML=l.map((c,i)=>{const w=WM(a[i].current.weather_code);return '<div class="hr c"><span>'+c[0]+'</span><span class="i">'+icon(w)+'</span><span>'+Math.round(a[i].current.temperature_2m)+'°</span><span>'+w+'</span></div>'}).join('')}catch(e){$(id).textContent='City data unavailable.'}}
 const hav=(a,b,c,d)=>{const p=Math.PI/180,x=Math.sin((c-a)*p/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin((d-b)*p/2)**2;return 2*3958.8*Math.asin(Math.sqrt(x))};
+let CAMS=[],camI=0,camHls=null,camReady=false;
+async function findCams(lat,lon){camReady=false;const key='rwc_'+lat.toFixed(1)+'_'+lon.toFixed(1);let ok=false;
+ try{const c=JSON.parse(localStorage.getItem(key)||'null');if(c&&Date.now()-c.t<864e5){CAMS=c.l;ok=true}}catch(e){}
+ if(!ok){try{const d=await(await fetch('https://raw.githubusercontent.com/AidanWelch/OpenTrafficCamMap/master/cameras/USA.json',{cache:'force-cache'})).json(),out=[];
+  for(const st in d)for(const co in d[st])for(const c of d[st][co]){if(!c.url||!/^https:/.test(c.url)||Math.abs(c.latitude-lat)>1.2||Math.abs(c.longitude-lon)>2)continue;
+   const m=hav(lat,lon,c.latitude,c.longitude);if(m>60)continue;const img=c.format==='IMAGE_STREAM'||/\.jpe?g(\?|$)/i.test(c.url);if(!img&&c.format!=='M3U8')continue;
+   out.push({s:m+(img?0:15),u:c.url,t:img?'img':'hls',n:c.description||'Traffic camera',mi:Math.max(1,Math.round(m))})}
+  out.sort((a,b)=>a.s-b.s);CAMS=out.slice(0,8);if(CAMS.length)try{localStorage.setItem(key,JSON.stringify({t:Date.now(),l:CAMS}))}catch(e){}}catch(e){CAMS=[]}}
+ camI=0;camReady=true;if(document.querySelector('.screen.on #camimg'))showCam()}
+function showCam(){const img=$('camimg'),vid=$('camvid'),cap=$('camcap');if(!img)return;
+ if(camHls){camHls.destroy();camHls=null}
+ if(!camReady){cap.textContent='Finding the closest camera…';return}
+ const c=CAMS[camI];
+ if(!c){img.style.display=vid.style.display='none';cap.textContent=CAMS.length?'No live camera is responding nearby right now.':'No public traffic camera found within 60 miles.';return}
+ cap.textContent=c.n+' · '+c.mi+' mi away';const bad=()=>{camI++;showCam()};
+ if(c.t==='img'){vid.style.display='none';img.style.display='block';img.onerror=bad;img.src=c.u+(c.u.includes('?')?'&':'?')+'t='+Date.now()}
+ else{img.style.display='none';vid.style.display='block';
+  if(window.Hls&&Hls.isSupported()){camHls=new Hls();camHls.loadSource(c.u);camHls.attachMedia(vid);camHls.on(Hls.Events.ERROR,(e,d)=>{if(d.fatal)bad()});vid.play().catch(()=>{})}
+  else if(vid.canPlayType&&vid.canPlayType('application/vnd.apple.mpegurl')){vid.src=c.u;vid.onerror=bad;vid.play().catch(()=>{})}else bad()}}
+setInterval(()=>{const i=$('camimg'),c=CAMS[camI];if(i&&c&&c.t==='img'&&i.style.display==='block'&&document.querySelector('.screen.on #camimg'))i.src=c.u+(c.u.includes('?')?'&':'?')+'t='+Date.now()},60000);
 async function nearbyFor(lat,lon,me){let list=null;const key='rwt_'+lat.toFixed(1)+'_'+lon.toFixed(1);
  try{const c=JSON.parse(localStorage.getItem(key)||'null');if(c&&Date.now()-c.t<864e5)list=c.l}catch(e){}
  if(!list){try{const q='[out:json][timeout:10];node(around:48280,'+lat+','+lon+')[place~"^(city|town|village)$"][name];out 80;',
@@ -198,7 +226,7 @@ const OTD=[];
  if(c.status==='fulfilled')(c.value.births||[]).filter(x=>x.text&&x.pages&&x.pages.length).forEach(x=>OTD.push('Born in '+x.year+': '+x.text))})();
 function newOtd(){const e=$('otd');if(e)fitText(e,OTD.length?OTD[Math.floor(Math.random()*OTD.length)]:'On this day facts are unavailable right now.')}
 const scr=()=>[...document.querySelectorAll('.screen')];
-function show(i){const a=scr();a.forEach(e=>e.classList.remove('on'));cur=(i+a.length)%a.length;a[cur].classList.add('on');if(a[cur].querySelector('#fact'))newFact();if(a[cur].querySelector('#otd'))newOtd()}
+function show(i){if(camHls){camHls.destroy();camHls=null}const a=scr();a.forEach(e=>e.classList.remove('on'));cur=(i+a.length)%a.length;a[cur].classList.add('on');if(a[cur].querySelector('#fact'))newFact();if(a[cur].querySelector('#otd'))newOtd();if(a[cur].querySelector('#camimg'))showCam()}
 function fitScr(){}
 setInterval(()=>fitScr(),2000);
 function next(){const a=scr();let i=cur;do{i=(i+1)%a.length}while(a[i].classList.contains('skip'));show(i)}
@@ -266,7 +294,7 @@ async function load(lat,lon){
  }
 }
 let rt;
-function go(a,b){LOC=[a,b];snaps();try{localStorage.setItem('rw',JSON.stringify([a,b]))}catch(e){}clearInterval(rt);load(a,b);rt=setInterval(()=>load(a,b),600000)}
+function go(a,b){LOC=[a,b];snaps();findCams(a,b);try{localStorage.setItem('rw',JSON.stringify([a,b]))}catch(e){}clearInterval(rt);load(a,b);rt=setInterval(()=>load(a,b),600000)}
 function saved(){try{const c=JSON.parse(localStorage.getItem('rw'));if(c){go(c[0],c[1]);return true}}catch(e){}return false}
 function ask(msg){$('loc').textContent='Location needed';
  $('cur').innerHTML=msg+'<br><br><button id="lb" style="font:inherit;color:#0a1560;background:#ffd23a;border:0;padding:10px 16px;cursor:pointer;box-shadow:2px 2px 0 #000">Use my location</button><br><br>Or search a US city or ZIP in the bar below.';
